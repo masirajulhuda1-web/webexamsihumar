@@ -1,8 +1,45 @@
 // js/guru.js
+const KUNCI_SESI_GURU = "cbt_ma_sihu_guru_sesi";
+
 let kredensialGuru = null;
 let dataHasilTerakhir = [];
 let daftarSoalCache = [];
 let targetEditSoal = null;
+
+function aktifkanTampilanGuru(infoGuruData) {
+  const infoGuruEl = document.getElementById("info-guru");
+  if (infoGuruEl && infoGuruData) {
+    infoGuruEl.textContent = `Guru: ${infoGuruData.namaGuru} (${infoGuruData.mapelAmpu || "Semua Mapel"})`;
+  }
+
+  const panelLogin = document.getElementById("panel-login-guru");
+  const areaKerja = document.getElementById("area-kerja-guru");
+  if (panelLogin) panelLogin.style.display = "none";
+  if (areaKerja) areaKerja.style.display = "flex";
+
+  if (infoGuruData?.mapelAmpu && infoGuruData.mapelAmpu.toUpperCase() !== "SEMUA") {
+    const sMapel = document.getElementById("s-mapel");
+    const filterHasil = document.getElementById("filter-mapel-hasil");
+    if (sMapel) sMapel.value = infoGuruData.mapelAmpu;
+    if (filterHasil) filterHasil.value = infoGuruData.mapelAmpu;
+  }
+}
+
+async function pulihkanSesiGuru() {
+  try {
+    const raw = sessionStorage.getItem(KUNCI_SESI_GURU);
+    if (!raw) return;
+    const tersimpan = JSON.parse(raw);
+    if (tersimpan?.idGuru && tersimpan?.kodeAkses && tersimpan?.guru) {
+      kredensialGuru = { idGuru: tersimpan.idGuru, kodeAkses: tersimpan.kodeAkses };
+      aktifkanTampilanGuru(tersimpan.guru);
+      await muatHasilSiswa();
+      await muatDaftarSoal();
+    }
+  } catch (e) {
+    sessionStorage.removeItem(KUNCI_SESI_GURU);
+  }
+}
 
 document.getElementById("form-login-guru")?.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -25,20 +62,11 @@ document.getElementById("form-login-guru")?.addEventListener("submit", async (e)
     }
 
     kredensialGuru = { idGuru, kodeAkses };
-    const infoGuru = document.getElementById("info-guru");
-    if (infoGuru) {
-      infoGuru.textContent = `Guru: ${hasil.guru.namaGuru} (${hasil.guru.mapelAmpu || "Semua Mapel"})`;
-    }
-
-    document.getElementById("panel-login-guru").style.display = "none";
-    document.getElementById("area-kerja-guru").style.display = "flex";
-
-    if (hasil.guru.mapelAmpu && hasil.guru.mapelAmpu.toUpperCase() !== "SEMUA") {
-      const sMapel = document.getElementById("s-mapel");
-      const filterHasil = document.getElementById("filter-mapel-hasil");
-      if (sMapel) sMapel.value = hasil.guru.mapelAmpu;
-      if (filterHasil) filterHasil.value = hasil.guru.mapelAmpu;
-    }
+    sessionStorage.setItem(
+      KUNCI_SESI_GURU,
+      JSON.stringify({ idGuru, kodeAkses, guru: hasil.guru })
+    );
+    aktifkanTampilanGuru(hasil.guru);
 
     await muatHasilSiswa();
     await muatDaftarSoal();
@@ -627,3 +655,55 @@ document.getElementById("form-upload-csv")?.addEventListener("submit", async (e)
     btn.textContent = "Import CSV ke Google Sheets";
   }
 });
+
+document.getElementById("form-reset-ujian")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!kredensialGuru) return;
+
+  const nis = document.getElementById("reset-nis")?.value.trim() || "";
+  const mapel = document.getElementById("reset-mapel")?.value.trim() || "";
+  const btn = document.getElementById("btn-reset-ujian");
+  const statusEl = document.getElementById("status-reset");
+
+  if (!nis) {
+    alert("Masukkan NIS siswa terlebih dahulu.");
+    return;
+  }
+
+  const konfirmasi = confirm(
+    `Yakin ingin mereset ujian untuk NIS "${nis}"${mapel ? ` pada mapel "${mapel}"` : " pada semua mapel"}? Data di RekapNilai akan dihapus.`
+  );
+  if (!konfirmasi) return;
+
+  btn.disabled = true;
+  btn.textContent = "Mereset ujian...";
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "resetUjian",
+        idGuru: kredensialGuru.idGuru,
+        kodeAkses: kredensialGuru.kodeAkses,
+        nis,
+        mapel
+      })
+    });
+    const hasil = await res.json();
+    if (hasil.status !== "success") throw new Error(hasil.message);
+
+    if (statusEl) statusEl.textContent = hasil.message;
+    document.getElementById("reset-nis").value = "";
+    document.getElementById("reset-mapel").value = "";
+
+    await muatHasilSiswa();
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Reset Ujian Siswa";
+  }
+});
+
+pulihkanSesiGuru();
