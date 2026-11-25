@@ -1,10 +1,163 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Guru - CBT MA Sirajul Huda Marindi</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .nav-tab-guru {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: #ffffff;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .tab-guru {
+      padding: 9px 14px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-guru:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .tab-guru.aktif {
+      background: #14532d;
+      color: #ffffff;
+    }
+
+    .kepala-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .flex-wrap-bar {
+      flex-wrap: wrap;
+    }
+
+    .subjudul-panel {
+      font-size: 0.86rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .grid-form-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .grid-form-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .grid-opsi-5 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    #area-kerja-guru input[type="text"],
+    #area-kerja-guru input[type="number"],
+    #area-kerja-guru select,
+    #area-kerja-guru textarea {
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      background: #ffffff;
+    }
+
+    #area-kerja-guru input:focus,
+    #area-kerja-guru select:focus,
+    #area-kerja-guru textarea:focus {
+      outline: none;
+      border-color: #15803d;
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
+    }
+
+    .input-file-csv {
+      padding: 10px !important;
+      border: 1px dashed #94a3b8 !important;
+      background: #f8fafc !important;
+    }
+
+    .baris-aksi {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .kartu-edit-soal {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .bungkus-tabel {
+      overflow-x: auto;
+    }
+
+    .tabel-data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .tabel-data thead tr {
+      background: #f1f5f9;
+      text-align: left;
+    }
+
+    .tabel-data th,
+    .tabel-data td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+
+    .sel-kosong {
+      padding: 14px !important;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .btn-bahaya {
+      padding: 10px 15px;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-bahaya:hover {
+      background: #b91c1c;
+    }
+  </style>
 </head>
 <body class="halaman-ujian">
   <header class="topbar-ujian">
@@ -284,168 +437,8 @@
       </div>
     </section>
   </main>
-```[cite: 5]
 
----
-
-## 2. Tambahkan Gaya Tab & Form Rapi di `css/style.css`
-
-Tambahkan gaya berikut di bagian bawah `css/style.css` agar tab navigasi, grid input, tabel, dan tombol terlihat konsisten:
-
-```css
-/* Panel Guru Rapih */
-.nav-tab-guru {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  background: #ffffff;
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-}
-
-.tab-guru {
-  padding: 9px 14px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #475569;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.tab-guru:hover {
-  background: #f1f5f9;
-  color: #0f172a;
-}
-
-.tab-guru.aktif {
-  background: #14532d;
-  color: #ffffff;
-}
-
-.kepala-panel {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.flex-wrap-bar {
-  flex-wrap: wrap;
-}
-
-.subjudul-panel {
-  font-size: 0.86rem;
-  color: #64748b;
-  margin-top: 4px;
-}
-
-.grid-form-2 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.grid-form-4 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 10px;
-}
-
-.grid-opsi-5 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
-}
-
-#area-kerja-guru input[type="text"],
-#area-kerja-guru input[type="number"],
-#area-kerja-guru select,
-#area-kerja-guru textarea {
-  padding: 9px 11px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  background: #ffffff;
-}
-
-#area-kerja-guru input:focus,
-#area-kerja-guru select:focus,
-#area-kerja-guru textarea:focus {
-  outline: none;
-  border-color: #15803d;
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
-}
-
-.input-file-csv {
-  padding: 10px !important;
-  border: 1px dashed #94a3b8 !important;
-  background: #f8fafc !important;
-}
-
-.baris-aksi {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.kartu-edit-soal {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 14px;
-}
-
-.bungkus-tabel {
-  overflow-x: auto;
-}
-
-.tabel-data {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-}
-
-.tabel-data thead tr {
-  background: #f1f5f9;
-  text-align: left;
-}
-
-.tabel-data th,
-.tabel-data td {
-  padding: 9px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  vertical-align: top;
-}
-
-.sel-kosong {
-  padding: 14px !important;
-  text-align: center;
-  color: #64748b;
-}
-
-.btn-bahaya {
-  padding: 10px 15px;
-  background: #dc2626;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-bahaya:hover {
-  background: #b91c1c;
-}
- <footer class="footer-ujian">
+  <footer class="footer-ujian">
     Madrasah Aliyah Sirajul Huda Marindi &bull; Pengembang Aplikasi: <strong>Siti Aisyah</strong>
   </footer>
 
