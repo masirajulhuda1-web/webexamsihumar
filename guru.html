@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Guru - CBT MA Sirajul Huda Marindi</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="halaman-ujian">
+  <header class="topbar-ujian">
+    <div class="identitas-topbar">
+      <img
+        src="assets/logo-ma-sirajul-huda.png"
+        alt="Logo MA Sirajul Huda Marindi"
+        class="logo-topbar"
+        style="width: 44px; height: 44px; object-fit: contain;"
+      />
+      <div>
+        <div class="nama-topbar">Panel Guru &bull; MA Sirajul Huda Marindi</div>
+        <div id="info-guru" class="info-peserta">Silakan login akun guru</div>
+      </div>
+    </div>
+    <a href="index.html" style="color:#fff;font-size:0.85rem;text-decoration:underline;">Halaman Siswa</a>
+  </header>
+
+  <main class="wadah-ujian" style="grid-template-columns: 1fr; max-width: 1080px;">
+    <!-- Form Login Guru -->
+    <section id="panel-login-guru" class="panel-soal">
+      <h2 style="margin-bottom:12px;">Login Akun Guru</h2>
+      <form id="form-login-guru" class="form-login">
+        <div class="grup-input">
+          <label for="id-guru">ID Guru</label>
+          <input type="text" id="id-guru" placeholder="Contoh: G01" required />
+        </div>
+        <div class="grup-input">
+          <label for="kode-akses">Kode Akses Guru</label>
+          <input type="password" id="kode-akses" placeholder="Masukkan kode akses" required />
+        </div>
+        <button type="submit" id="btn-login-guru" class="tombol-masuk">Masuk Panel Guru</button>
+      </form>
+    </section>
+
+    <!-- Area Kerja Guru -->
+    <section id="area-kerja-guru" style="display:none; flex-direction:column; gap:20px;">
+<!-- Upload Soal dari File CSV -->
+      <div class="panel-soal">
+        <h2 style="margin-bottom:8px;">Import Soal dari File CSV</h2>
+        <p style="font-size:0.86rem; color:#475569; margin-bottom:10px;">
+          Gunakan file <code>.csv</code> dengan urutan kolom:
+          <code>ID_Soal, Mapel, Pertanyaan, Opsi_A, Opsi_B, Opsi_C, Opsi_D, Opsi_E, Kunci, Bobot</code>
+        </p>
+
+        <form id="form-upload-csv" style="display:grid; gap:10px;">
+          <input
+            type="file"
+            id="file-soal-csv"
+            accept=".csv,text/csv"
+            required
+            style="padding:8px; border:1px dashed #94a3b8; border-radius:8px; background:#f8fafc;"
+          />
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" id="btn-upload-csv" class="tombol-masuk">
+              Import CSV ke Google Sheets
+            </button>
+            <button type="button" id="btn-download-template-csv" class="btn-sekunder">
+              Download Template CSV
+            </button>
+          </div>
+        </form>
+        <div id="status-csv" class="status-simpan"></div>
+      </div>
+      <!-- Upload / Tempel Banyak Soal Sekaligus -->
+      <div class="panel-soal">
+        <h2 style="margin-bottom:8px;">Upload / Tempel Banyak Soal Sekaligus</h2>
+        <p style="font-size:0.86rem; color:#475569; margin-bottom:10px;">
+          Satu soal per baris dengan pemisah tanda <strong>|</strong>:
+          <code>ID_Soal | Mapel | Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Opsi E | Kunci | Bobot</code>
+        </p>
+        <form id="form-upload-massal" style="display:grid; gap:10px;">
+          <textarea
+            id="s-massal"
+            rows="5"
+            placeholder="KIM01 | Kimia | Apa lambang unsur Natrium? | Na | K | Fe | Cl | A | 1&#10;BAR01 | Bahasa Arab | Arti kata 'المعلم' adalah... | Siswa | Guru | Kepala Madrasah | Buku | B | 2"
+            required
+            style="padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit;"
+          ></textarea>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" id="btn-simpan-massal" class="tombol-masuk">
+              Upload Semua Soal ke Google Sheets
+            </button>
+            <button type="button" id="btn-isi-contoh" class="btn-sekunder">
+              Isi Contoh Format
+            </button>
+          </div>
+        </form>
+        <div id="status-massal" class="status-simpan"></div>
+      </div>
+      <!-- Daftar, Edit & Hapus Soal -->
+      <div class="panel-soal">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+          <h2>Daftar Soal Tersimpan</h2>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="text" id="filter-mapel-soal" placeholder="Filter mapel (kosong = semua)" style="padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <button type="button" id="btn-muat-soal" class="btn-sekunder">Muat Daftar Soal</button>
+          </div>
+        </div>
+
+        <!-- Form Edit Soal (muncul saat tombol Edit diklik) -->
+        <div id="panel-edit-soal" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:14px; margin-bottom:14px;">
+          <h3 style="margin-bottom:10px;">Edit Soal</h3>
+          <form id="form-edit-soal" style="display:grid; gap:10px;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px;">
+              <input type="text" id="edit-id" placeholder="ID Soal" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+              <input type="text" id="edit-mapel" placeholder="Mapel" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+              <select id="edit-kunci" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;">
+                <option value="A">Kunci: A</option>
+                <option value="B">Kunci: B</option>
+                <option value="C">Kunci: C</option>
+                <option value="D">Kunci: D</option>
+              </select>
+              <input type="number" id="edit-bobot" min="1" placeholder="Bobot" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+            </div>
+            <textarea id="edit-tanya" rows="2" placeholder="Pertanyaan soal" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;"></textarea>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px;">
+              <input type="text" id="edit-a" placeholder="Opsi A" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+              <input type="text" id="edit-b" placeholder="Opsi B" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+              <input type="text" id="edit-c" placeholder="Opsi C" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+              <input type="text" id="edit-d" placeholder="Opsi D" required style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;" />
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="submit" id="btn-simpan-edit" class="tombol-masuk">Simpan Perubahan Soal</button>
+              <button type="button" id="btn-batal-edit" class="btn-sekunder">Batal</button>
+            </div>
+          </form>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">ID</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Mapel</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Pertanyaan &amp; Opsi</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Kunci</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Bobot</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-soal">
+              <tr><td colspan="6" style="padding:12px; text-align:center;">Klik "Muat Daftar Soal" untuk melihat soal.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="status-kelola-soal" class="status-simpan"></div>
+      </div>
+      <!-- Tambah Soal Satu per Satu -->
+      <div class="panel-soal">
+        <h2 style="margin-bottom:12px;">Tambah / Upload Soal Baru</h2>
+        <form id="form-upload-soal" style="display:grid; gap:10px;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+            <input type="text" id="s-id" placeholder="ID Soal (misal: KIM01)" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <input type="text" id="s-mapel" placeholder="Mapel (misal: Kimia)" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <select id="s-kunci" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;">
+              <option value="">Kunci Jawaban</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+              <option value="E">E</option>
+            </select>
+            <input type="number" id="s-bobot" value="1" min="1" placeholder="Bobot" style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+          </div>
+          <textarea id="s-tanya" rows="2" placeholder="Tulis pertanyaan soal..." required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;"></textarea>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+            <input type="text" id="s-a" placeholder="Opsi A" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <input type="text" id="s-b" placeholder="Opsi B" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <input type="text" id="s-c" placeholder="Opsi C" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <input type="text" id="s-d" placeholder="Opsi D" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <input type="text" id="s-e" placeholder="Opsi E" required style="padding:9px;border:1px solid #cbd5e1;border-radius:8px;" />
+          </div>
+          <button type="submit" id="btn-simpan-soal" class="tombol-masuk">Simpan Soal ke Google Sheets</button>
+        </form>
+        <div id="status-guru" class="status-simpan"></div>
+      </div>
+
+      <!-- Lihat & Unduh Hasil Siswa -->
+      <div class="panel-soal">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+          <h2>Hasil &amp; Jawaban Siswa</h2>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="text" id="filter-mapel-hasil" placeholder="Filter mapel (kosong = semua)" style="padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;" />
+            <button type="button" id="btn-muat-hasil" class="btn-sekunder">Muat Hasil</button>
+            <button type="button" id="btn-export-csv" class="btn-selesai">Download CSV</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table id="tabel-hasil" style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Waktu</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">NIS</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Nama</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Kelas</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Mapel</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Skor</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Pelanggaran</th>
+                <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Jawaban Siswa</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-hasil">
+              <tr><td colspan="8" style="padding:12px; text-align:center;">Klik "Muat Hasil" untuk melihat data.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-ujian">
+    Madrasah Aliyah Sirajul Huda Marindi &bull; Pengembang Aplikasi: <strong>Siti Aisyah</strong>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/guru.js"></script>
+</body>
+</html>

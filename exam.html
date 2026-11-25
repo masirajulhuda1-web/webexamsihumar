@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruang Ujian - Madrasah Aliyah Sirajul Huda Marindi</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="halaman-ujian">
+  <header class="topbar-ujian">
+    <div class="identitas-topbar">
+      <img
+        src="assets/logo-ma-sirajul-huda.png"
+        alt="Logo MA Sirajul Huda Marindi"
+        class="logo-topbar"
+        style="width: 44px; height: 44px; object-fit: contain;"
+      />
+      <div>
+        <div class="nama-topbar">Madrasah Aliyah Sirajul Huda Marindi</div>
+        <div id="info-peserta" class="info-peserta">Peserta: -</div>
+      </div>
+    </div>
+    <div id="timer-ujian" class="timer-ujian">90:00</div>
+  </header>
+
+  <main class="wadah-ujian">
+    <section class="panel-soal">
+      <div id="banner-peringatan" class="banner-peringatan"></div>
+      <div id="nomor-soal-label" class="nomor-soal-label">Soal 1</div>
+      <div id="teks-pertanyaan" class="teks-pertanyaan">Memuat pertanyaan...</div>
+      <div id="daftar-opsi" class="daftar-opsi"></div>
+
+      <div class="tombol-navigasi">
+        <button type="button" id="btn-prev" class="btn-sekunder">Sebelumnya</button>
+        <button type="button" id="btn-next" class="btn-sekunder">Berikutnya</button>
+        <button type="button" id="btn-selesai" class="btn-selesai">Selesai Ujian</button>
+      </div>
+    </section>
+
+    <aside class="panel-nomor">
+      <h3>Daftar Nomor</h3>
+      <div id="grid-nomor" class="grid-nomor"></div>
+      <div id="status-simpan" class="status-simpan">Jawaban tersimpan otomatis di browser.</div>
+    </aside>
+  </main>
+
+  <footer class="footer-ujian">
+    Madrasah Aliyah Sirajul Huda Marindi &bull; Pengembang Aplikasi: <strong>Siti Aisyah</strong>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/exam.js"></script>
+</body>
+</html>

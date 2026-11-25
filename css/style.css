@@ -1,0 +1,334 @@
+/* css/style.css */
+:root {
+  --hijau-utama: #0b7a3e;
+  --hijau-gelap: #07542a;
+  --emas: #f4c414;
+  --latar: #f3f6f4;
+  --teks: #1e293b;
+  --teks-redup: #64748b;
+  --garis: #cbd5e1;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--latar);
+  color: var(--teks);
+  min-height: 100vh;
+  justify-content: center;
+  padding: 16px;
+}
+
+.kartu-login {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px;
+  border-radius: 14px;
+  border-top: 5px solid var(--hijau-utama);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.logo-sekolah {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+.nama-sekolah {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--hijau-utama);
+  line-height: 1.3;
+}
+
+.subjudul-app {
+  font-size: 0.9rem;
+  color: var(--teks-redup);
+  margin-top: 4px;
+  margin-bottom: 20px;
+}
+
+.form-login {
+  text-align: left;
+}
+
+.grup-input {
+  margin-bottom: 14px;
+}
+
+.grup-input label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.grup-input input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--garis);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.grup-input input:focus {
+  outline: 2px solid rgba(11, 122, 62, 0.25);
+  border-color: var(--hijau-utama);
+}
+
+.tombol-masuk {
+  width: 100%;
+  padding: 11px;
+  margin-top: 6px;
+  background-color: var(--hijau-utama);
+  color: #ffffff;
+  border: none;
+  border-bottom: 3px solid var(--emas);
+  border-radius: 8px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tombol-masuk:hover {
+  background-color: var(--hijau-gelap);
+}
+
+.footer-app {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  color: var(--teks-redup);
+}
+
+.footer-app strong {
+  color: var(--hijau-utama);
+}
+/* Tambahan untuk Halaman Ujian */
+body.halaman-ujian {
+  display: block;
+  min-height: 100vh;
+}
+
+.topbar-ujian {
+  background-color: var(--hijau-utama);
+  color: #ffffff;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid var(--emas);
+  gap: 12px;
+}
+
+.identitas-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-topbar {
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.nama-topbar {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.info-peserta {
+  font-size: 0.85rem;
+  opacity: 0.92;
+}
+
+.timer-ujian {
+  background-color: var(--emas);
+  color: #111827;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.wadah-ujian {
+  max-width: 960px;
+  margin: 24px auto;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 720px) {
+  .wadah-ujian {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel-soal,
+.panel-nomor {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.nomor-soal-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--hijau-utama);
+  margin-bottom: 8px;
+}
+
+.teks-pertanyaan {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.daftar-opsi {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-opsi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--garis);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.item-opsi.terpilih {
+  border-color: var(--hijau-utama);
+  background-color: rgba(11, 122, 62, 0.08);
+  font-weight: 600;
+}
+
+.tombol-navigasi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-sekunder {
+  padding: 9px 14px;
+  border: 1px solid var(--garis);
+  background: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-sekunder:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-selesai {
+  margin-left: auto;
+  padding: 9px 16px;
+  background-color: var(--hijau-utama);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.grid-nomor {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.kotak-nomor {
+  padding: 8px 0;
+  border: 1px solid var(--garis);
+  background: #ffffff;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kotak-nomor.terjawab {
+  background-color: var(--hijau-utama);
+  color: #ffffff;
+  border-color: var(--hijau-utama);
+}
+
+.kotak-nomor.aktif {
+  outline: 2px solid var(--emas);
+}
+
+.status-simpan {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: var(--teks-redup);
+}
+
+.footer-ujian {
+  text-align: center;
+  padding: 16px;
+  font-size: 0.82rem;
+  color: var(--teks-redup);
+}
+
+.footer-ujian strong {
+  color: var(--hijau-utama);
+}
+/* Proteksi teks soal agar sulit diblok atau disalin */
+.panel-soal,
+.teks-pertanyaan,
+.daftar-opsi,
+.item-opsi {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
+/* Samarkan & kunci interaksi soal saat pindah tab/aplikasi atau terdeteksi upaya tangkap layar */
+body.tersembunyi .wadah-ujian,
+body.mode-tangkap-layar .wadah-ujian {
+  filter: blur(12px);
+  opacity: 0.15;
+  pointer-events: none;
+  transition: filter 0.12s ease, opacity 0.12s ease;
+}
+
+/* Banner peringatan pelanggaran di atas area soal */
+.banner-peringatan {
+  display: none;
+  background-color: #fef2f2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.banner-peringatan.aktif {
+  display: block;
+}
