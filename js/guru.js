@@ -24,6 +24,7 @@ function aktifkanTampilanGuru(infoGuruData) {
     if (filterHasil) filterHasil.value = infoGuruData.mapelAmpu;
   }
 }
+
 function aktifkanTabGuru(idTab) {
   document.querySelectorAll(".tab-guru").forEach((btn) => {
     btn.classList.toggle("aktif", btn.dataset.tab === idTab);
@@ -40,9 +41,10 @@ document.querySelectorAll(".tab-guru").forEach((btn) => {
   btn.addEventListener("click", () => {
     if (btn.dataset.tab) {
       aktifkanTabGuru(btn.dataset.tab);
-   }
+    }
   });
 });
+
 async function pulihkanSesiGuru() {
   try {
     const raw = sessionStorage.getItem(KUNCI_SESI_GURU);
@@ -725,3 +727,4 @@ document.getElementById("form-reset-ujian")?.addEventListener("submit", async (e
 });
 
 pulihkanSesiGuru();
+```[cite: 6, 8]
