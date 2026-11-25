@@ -183,6 +183,25 @@
         <div id="status-guru" class="status-simpan"></div>
       </div>
 
+      <!-- Reset Ujian Siswa -->
+      <div class="panel-soal">
+        <h2 style="margin-bottom:8px;">Reset Ujian Siswa</h2>
+        <p style="font-size:0.86rem; color:#475569; margin-bottom:10px;">
+          Hapus riwayat sesi/nilai di <code>RekapNilai</code> agar siswa dapat login ulang pada mata pelajaran tersebut. Kosongkan mapel jika ingin mereset semua mapel untuk NIS tersebut.
+        </p>
+
+        <form id="form-reset-ujian" style="display:grid; gap:10px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+            <input type="text" id="reset-nis" placeholder="NIS Siswa (wajib)" required />
+            <input type="text" id="reset-mapel" placeholder="Nama Mapel (opsional, misal: Kimia)" />
+          </div>
+          <button type="submit" id="btn-reset-ujian" style="padding:10px 14px; background:#dc2626; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; width:fit-content;">
+            Reset Ujian Siswa
+          </button>
+        </form>
+        <div id="status-reset" class="status-simpan"></div>
+      </div>
+      
       <!-- Lihat & Unduh Hasil Siswa -->
       <div class="panel-soal">
         <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
