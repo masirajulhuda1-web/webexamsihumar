@@ -548,6 +548,79 @@ document.getElementById("form-upload-soal")?.addEventListener("submit", async (e
   }
 });
 
+let dataHasilMentah = [];
+
+function normalisasiKelasHasil(kelas) {
+  const bersih = String(kelas || "")
+    .trim()
+    .toUpperCase()
+    .replace(/^KELAS\s+/i, "")
+    .trim();
+
+  if (/^(10|X)(\b|[^I]).*/.test(bersih)) return "X";
+  if (/^(11|XI)(\b|[^I]).*/.test(bersih)) return "XI";
+  if (/^(12|XII)\b.*/.test(bersih)) return "XII";
+  return bersih;
+}
+
+function renderRingkasanPerKelas(rows) {
+  const wadah = document.getElementById("ringkasan-kelas-hasil");
+  if (!wadah) return;
+
+  if (!rows.length) {
+    wadah.innerHTML = "";
+    return;
+  }
+
+  const rekap = {};
+  rows.forEach((r) => {
+    const kls = String(r.kelas || "-").trim() || "-";
+    rekap[kls] = (rekap[kls] || 0) + 1;
+  });
+
+  wadah.innerHTML = Object.entries(rekap)
+    .map(
+      ([kls, jml]) =>
+        `<span class="badge-status badge-aktif">Kelas ${kls}: ${jml} data</span>`
+    )
+    .join("");
+}
+
+function renderTabelHasil() {
+  const tbody = document.getElementById("tbody-hasil");
+  if (!tbody) return;
+
+  const kelasDipilih = document.getElementById("filter-kelas-hasil")?.value || "";
+  const targetKelasNorm = kelasDipilih ? normalisasiKelasHasil(kelasDipilih) : "";
+
+  dataHasilTerakhir = targetKelasNorm
+    ? dataHasilMentah.filter((row) => normalisasiKelasHasil(row.kelas) === targetKelasNorm)
+    : [...dataHasilMentah];
+
+  renderRingkasanPerKelas(dataHasilTerakhir);
+
+  if (dataHasilTerakhir.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:12px;text-align:center;">Belum ada data hasil ujian untuk filter yang dipilih.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  dataHasilTerakhir.forEach((row) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.waktu}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.nis}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.nama}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:600;">${row.kelas}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.mapel}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${row.skor}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.pelanggaran ?? 0}x</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;max-width:260px;word-break:break-word;">${row.jawaban}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 async function muatHasilSiswa() {
   if (!kredensialGuru) return;
   const mapelFilter = document.getElementById("filter-mapel-hasil")?.value.trim() || "";
@@ -569,31 +642,40 @@ async function muatHasilSiswa() {
     const hasil = await res.json();
     if (hasil.status !== "success") throw new Error(hasil.message);
 
-    dataHasilTerakhir = hasil.data || [];
-    if (dataHasilTerakhir.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="padding:12px;text-align:center;">Belum ada data hasil ujian.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = "";
-    dataHasilTerakhir.forEach((row) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.waktu}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.nis}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.nama}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.kelas}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.mapel}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${row.skor}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${row.pelanggaran ?? 0}x</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;max-width:260px;word-break:break-word;">${row.jawaban}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+    dataHasilMentah = hasil.data || [];
+    renderTabelHasil();
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="8" style="padding:12px;text-align:center;color:#b91c1c;">${err.message}</td></tr>`;
   }
 }
+
+document.getElementById("filter-kelas-hasil")?.addEventListener("change", () => {
+  renderTabelHasil();
+});
+
+document.getElementById("btn-muat-hasil")?.addEventListener("click", muatHasilSiswa);
+
+document.getElementById("btn-export-csv")?.addEventListener("click", () => {
+  if (!dataHasilTerakhir.length) {
+    alert("Tidak ada data untuk diunduh.");
+    return;
+  }
+  const kelasDipilih = document.getElementById("filter-kelas-hasil")?.value || "semua_kelas";
+  const header = ["Waktu", "NIS", "Nama", "Kelas", "Mapel", "Skor", "Pelanggaran", "Jawaban_JSON"];
+  const baris = dataHasilTerakhir.map((r) =>
+    [r.waktu, r.nis, r.nama, r.kelas, r.mapel, r.skor, r.pelanggaran ?? 0, r.jawaban]
+      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+      .join(",")
+  );
+  const csvContent = "\uFEFF" + [header.join(","), ...baris].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `rekap-hasil-ujian-${kelasDipilih.toLowerCase()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
 
 function parseSoalMassal(teks, mapelDefault) {
   const barisList = String(teks || "")
