@@ -6,16 +6,46 @@ let daftarSoalCache = [];
 let daftarJadwalCache = [];
 let targetEditSoal = null;
 
+function setSidebarMobile(terbuka) {
+  const sidebar = document.getElementById("sidebar-guru");
+  const backdrop = document.getElementById("backdrop-sidebar");
+  if (sidebar) sidebar.classList.toggle("terbuka", Boolean(terbuka));
+  if (backdrop) backdrop.classList.toggle("aktif", Boolean(terbuka));
+}
+
+document.getElementById("btn-toggle-sidebar")?.addEventListener("click", () => {
+  const sidebar = document.getElementById("sidebar-guru");
+  const sedangTerbuka = sidebar?.classList.contains("terbuka");
+  setSidebarMobile(!sedangTerbuka);
+});
+
+document.getElementById("btn-tutup-sidebar")?.addEventListener("click", () => {
+  setSidebarMobile(false);
+});
+
+document.getElementById("backdrop-sidebar")?.addEventListener("click", () => {
+  setSidebarMobile(false);
+});
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 820) {
+    setSidebarMobile(false);
+  }
+});
+
 function aktifkanTampilanGuru(infoGuruData) {
   const infoGuruEl = document.getElementById("info-guru");
   if (infoGuruEl && infoGuruData) {
     infoGuruEl.textContent = `Guru: ${infoGuruData.namaGuru} (${infoGuruData.mapelAmpu || "Semua Mapel"})`;
   }
 
+  const btnToggle = document.getElementById("btn-toggle-sidebar");
+  if (btnToggle) btnToggle.classList.add("tampil");
+
   const panelLogin = document.getElementById("panel-login-guru");
   const areaKerja = document.getElementById("area-kerja-guru");
   if (panelLogin) panelLogin.style.display = "none";
-  if (areaKerja) areaKerja.style.display = "flex";
+  if (areaKerja) areaKerja.style.display = "grid";
 
   if (infoGuruData?.mapelAmpu && infoGuruData.mapelAmpu.toUpperCase() !== "SEMUA") {
     const sMapel = document.getElementById("s-mapel");
@@ -37,6 +67,8 @@ function aktifkanTabGuru(idTab) {
     panel.classList.toggle("aktif", cocok);
     panel.style.display = cocok ? (idTab === "tab-input-soal" ? "flex" : "block") : "none";
   });
+
+  setSidebarMobile(false);
 }
 
 document.querySelectorAll(".tab-guru").forEach((btn) => {
