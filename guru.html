@@ -6,19 +6,78 @@
   <title>Panel Guru - CBT MA Sirajul Huda Marindi</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .nav-tab-guru {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    .tombol-menu-sidebar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .tombol-menu-sidebar:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .layout-guru {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      width: 100%;
+    }
+
+    .sidebar-guru {
       background: #ffffff;
-      padding: 8px;
+      padding: 12px;
       border-radius: 12px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+      position: sticky;
+      top: 16px;
+    }
+
+    .judul-sidebar-mobile {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #14532d;
+    }
+
+    .btn-tutup-sidebar {
+      border: none;
+      background: #f1f5f9;
+      color: #334155;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .nav-tab-guru {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .tab-guru {
-      padding: 9px 14px;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
       border: none;
       border-radius: 8px;
       background: transparent;
@@ -37,6 +96,56 @@
     .tab-guru.aktif {
       background: #14532d;
       color: #ffffff;
+    }
+
+    .area-konten-guru {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .backdrop-sidebar {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 90;
+    }
+
+    .backdrop-sidebar.aktif {
+      display: block;
+    }
+
+    @media (max-width: 820px) {
+      .tombol-menu-sidebar.tampil {
+        display: inline-flex;
+      }
+
+      .layout-guru {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-guru {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 265px;
+        max-width: 82vw;
+        border-radius: 0 14px 14px 0;
+        z-index: 100;
+        transform: translateX(-105%);
+        transition: transform 0.22s ease;
+        overflow-y: auto;
+        box-shadow: 8px 0 24px rgba(15, 23, 42, 0.18);
+      }
+
+      .sidebar-guru.terbuka {
+        transform: translateX(0);
+      }
+
+      .judul-sidebar-mobile {
+        display: flex;
+      }
     }
 
     .kepala-panel {
@@ -190,6 +299,14 @@
 <body class="halaman-ujian">
   <header class="topbar-ujian">
     <div class="identitas-topbar">
+      <button
+        type="button"
+        id="btn-toggle-sidebar"
+        class="tombol-menu-sidebar"
+        aria-label="Buka Menu Navigasi"
+      >
+        &#9776;
+      </button>
       <img
         src="assets/logo-ma-sirajul-huda.png"
         alt="Logo MA Sirajul Huda Marindi"
@@ -204,7 +321,9 @@
     <a href="index.html" style="color:#fff;font-size:0.85rem;text-decoration:underline;">Halaman Siswa</a>
   </header>
 
-  <main class="wadah-ujian" style="grid-template-columns: 1fr; max-width: 1120px;">
+  <div id="backdrop-sidebar" class="backdrop-sidebar"></div>
+
+  <main class="wadah-ujian" style="grid-template-columns: 1fr; max-width: 1180px;">
     <!-- Form Login Guru -->
     <section id="panel-login-guru" class="panel-soal" style="max-width: 480px; margin: 24px auto; width: 100%;">
       <h2 style="margin-bottom:6px;">Login Akun Guru</h2>
@@ -225,330 +344,338 @@
     </section>
 
     <!-- Area Kerja Guru -->
-    <section id="area-kerja-guru" style="display:none; flex-direction:column; gap:18px;">
-      <!-- Bar Navigasi Tab Panel Guru -->
-      <nav class="nav-tab-guru" aria-label="Menu Panel Guru">
-        <button type="button" class="tab-guru aktif" data-tab="tab-jadwal-ujian">Jadwal Ujian</button>
-        <button type="button" class="tab-guru" data-tab="tab-input-soal">Input &amp; Import Soal</button>
-        <button type="button" class="tab-guru" data-tab="tab-bank-soal">Daftar &amp; Edit Soal</button>
-        <button type="button" class="tab-guru" data-tab="tab-hasil-ujian">Hasil Ujian Siswa</button>
-        <button type="button" class="tab-guru" data-tab="tab-reset-ujian">Reset Ujian</button>
-      </nav>
-
-      <!-- TAB 0: Jadwal Ujian per Kelas & Mapel -->
-      <div id="tab-jadwal-ujian" class="konten-tab-guru aktif" style="display:block;">
-        <div class="panel-soal">
-          <div class="kepala-panel flex-wrap-bar">
-            <div>
-              <h2>Pengaturan Jadwal Ujian</h2>
-              <p class="subjudul-panel">
-                Atur mata pelajaran, target kelas (<code>X</code>, <code>XI</code>, <code>XII</code>, atau <code>SEMUA</code>), rentang waktu mulai/selesai, dan status aktif agar siswa hanya bisa ujian sesuai kelas dan jadwalnya.
-              </p>
-            </div>
-            <button type="button" id="btn-muat-jadwal" class="btn-sekunder">Muat Ulang Jadwal</button>
-          </div>
-
-          <form id="form-simpan-jadwal" style="display:grid; gap:12px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:10px; border:1px solid #cbd5e1;">
-            <div class="grid-form-4">
-              <div class="label-field">
-                <span>Mata Pelajaran</span>
-                <input type="text" id="j-mapel" placeholder="Contoh: Kimia" required />
-              </div>
-              <div class="label-field">
-                <span>Target Kelas</span>
-                <select id="j-kelas" required>
-                  <option value="X">Kelas X (10)</option>
-                  <option value="XI">Kelas XI (11)</option>
-                  <option value="XII">Kelas XII (12)</option>
-                  <option value="SEMUA">SEMUA KELAS</option>
-                </select>
-              </div>
-              <div class="label-field">
-                <span>Waktu Mulai</span>
-                <input type="datetime-local" id="j-mulai" />
-              </div>
-              <div class="label-field">
-                <span>Waktu Selesai</span>
-                <input type="datetime-local" id="j-selesai" />
-              </div>
-              <div class="label-field">
-                <span>Status</span>
-                <select id="j-status" required>
-                  <option value="AKTIF">AKTIF</option>
-                  <option value="NONAKTIF">NONAKTIF</option>
-                </select>
-              </div>
-            </div>
-            <div class="baris-aksi">
-              <button type="submit" id="btn-simpan-jadwal" class="tombol-masuk" style="width:auto; padding:10px 18px;">
-                Simpan Jadwal
-              </button>
-              <button type="button" id="btn-reset-form-jadwal" class="btn-sekunder">
-                Bersihkan Form
-              </button>
-            </div>
-          </form>
-
-          <div class="bungkus-tabel">
-            <table class="tabel-data">
-              <thead>
-                <tr>
-                  <th>Mapel</th>
-                  <th>Kelas</th>
-                  <th>Waktu Mulai</th>
-                  <th>Waktu Selesai</th>
-                  <th>Status</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-jadwal">
-                <tr><td colspan="6" class="sel-kosong">Memuat jadwal ujian...</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div id="status-jadwal" class="status-simpan"></div>
+    <section id="area-kerja-guru" class="layout-guru" style="display:none;">
+      <!-- Sidebar Navigasi Panel Guru -->
+      <aside id="sidebar-guru" class="sidebar-guru" aria-label="Menu Panel Guru">
+        <div class="judul-sidebar-mobile">
+          <span>Menu Panel Guru</span>
+          <button type="button" id="btn-tutup-sidebar" class="btn-tutup-sidebar" aria-label="Tutup Menu">&times;</button>
         </div>
-      </div>
+        <nav class="nav-tab-guru">
+          <button type="button" class="tab-guru aktif" data-tab="tab-jadwal-ujian">Jadwal Ujian</button>
+          <button type="button" class="tab-guru" data-tab="tab-input-soal">Input &amp; Import Soal</button>
+          <button type="button" class="tab-guru" data-tab="tab-bank-soal">Daftar &amp; Edit Soal</button>
+          <button type="button" class="tab-guru" data-tab="tab-hasil-ujian">Hasil Ujian Siswa</button>
+          <button type="button" class="tab-guru" data-tab="tab-reset-ujian">Reset Ujian</button>
+        </nav>
+      </aside>
 
-      <!-- TAB 1: Input & Import Soal -->
-      <div id="tab-input-soal" class="konten-tab-guru" style="display:none; flex-direction:column; gap:18px;">
-        <!-- Tambah Soal Satu per Satu -->
-        <div class="panel-soal">
-          <div class="kepala-panel">
-            <div>
-              <h2>Tambah Soal Satuan</h2>
-              <p class="subjudul-panel">Input satu butir soal pilihan ganda (opsi A–E) beserta kunci, bobot, dan target kelas.</p>
+      <div class="area-konten-guru">
+        <!-- TAB 0: Jadwal Ujian per Kelas & Mapel -->
+        <div id="tab-jadwal-ujian" class="konten-tab-guru aktif" style="display:block;">
+          <div class="panel-soal">
+            <div class="kepala-panel flex-wrap-bar">
+              <div>
+                <h2>Pengaturan Jadwal Ujian</h2>
+                <p class="subjudul-panel">
+                  Atur mata pelajaran, target kelas (<code>X</code>, <code>XI</code>, <code>XII</code>, atau <code>SEMUA</code>), rentang waktu mulai/selesai, dan status aktif agar siswa hanya bisa ujian sesuai kelas dan jadwalnya.
+                </p>
+              </div>
+              <button type="button" id="btn-muat-jadwal" class="btn-sekunder">Muat Ulang Jadwal</button>
             </div>
-          </div>
-          <form id="form-upload-soal" style="display:grid; gap:12px;">
-            <div class="grid-form-4">
-              <input type="text" id="s-id" placeholder="ID Soal (misal: KIM01)" required />
-              <input type="text" id="s-mapel" placeholder="Mapel (misal: Kimia)" required />
-              <select id="s-kunci" required>
-                <option value="">Kunci Jawaban</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-                <option value="E">E</option>
-              </select>
-              <input type="number" id="s-bobot" value="1" min="1" placeholder="Bobot" />
-              <select id="s-kelas">
-                <option value="SEMUA">Kelas: SEMUA</option>
-                <option value="X">Kelas: X (10)</option>
-                <option value="XI">Kelas: XI (11)</option>
-                <option value="XII">Kelas: XII (12)</option>
-              </select>
-            </div>
-            <textarea id="s-tanya" rows="2" placeholder="Tulis pertanyaan soal..." required></textarea>
-            <div class="grid-opsi-5">
-              <input type="text" id="s-a" placeholder="Opsi A" required />
-              <input type="text" id="s-b" placeholder="Opsi B" required />
-              <input type="text" id="s-c" placeholder="Opsi C" required />
-              <input type="text" id="s-d" placeholder="Opsi D" required />
-              <input type="text" id="s-e" placeholder="Opsi E" required />
-            </div>
-            <div>
-              <button type="submit" id="btn-simpan-soal" class="tombol-masuk">Simpan Soal ke Google Sheets</button>
-            </div>
-          </form>
-          <div id="status-guru" class="status-simpan"></div>
-        </div>
 
-        <!-- Upload / Tempel Banyak Soal Sekaligus -->
-        <div class="panel-soal">
-          <div class="kepala-panel">
-            <div>
-              <h2>Tempel Banyak Soal Sekaligus</h2>
-              <p class="subjudul-panel">
-                Satu soal per baris dengan pemisah tanda <strong>|</strong>:
-                <code>ID_Soal | Mapel | Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Opsi E | Kunci | Bobot | Kelas</code>
-              </p>
-            </div>
-          </div>
-          <form id="form-upload-massal" style="display:grid; gap:12px;">
-            <textarea
-              id="s-massal"
-              rows="5"
-              placeholder="KIM01 | Kimia | Apa lambang unsur Natrium? | Na | K | Fe | Cl | Mg | A | 1 | X&#10;BAR01 | Bahasa Arab | Arti kata 'المعلم' adalah... | Siswa | Guru | Kepala Madrasah | Buku | Perpustakaan | B | 2 | XI"
-              required
-            ></textarea>
-            <div class="baris-aksi">
-              <button type="submit" id="btn-simpan-massal" class="tombol-masuk">
-                Upload Semua Soal ke Google Sheets
-              </button>
-              <button type="button" id="btn-isi-contoh" class="btn-sekunder">
-                Isi Contoh Format
-              </button>
-            </div>
-          </form>
-          <div id="status-massal" class="status-simpan"></div>
-        </div>
-
-        <!-- Upload Soal dari File CSV -->
-        <div class="panel-soal">
-          <div class="kepala-panel">
-            <div>
-              <h2>Import Soal dari File CSV</h2>
-              <p class="subjudul-panel">
-                Urutan kolom:
-                <code>ID_Soal, Mapel, Pertanyaan, Opsi_A, Opsi_B, Opsi_C, Opsi_D, Opsi_E, Kunci, Bobot, Kelas</code>
-              </p>
-            </div>
-          </div>
-          <form id="form-upload-csv" style="display:grid; gap:12px;">
-            <input
-              type="file"
-              id="file-soal-csv"
-              accept=".csv,text/csv"
-              required
-              class="input-file-csv"
-            />
-            <div class="baris-aksi">
-              <button type="submit" id="btn-upload-csv" class="tombol-masuk">
-                Import CSV ke Google Sheets
-              </button>
-              <button type="button" id="btn-download-template-csv" class="btn-sekunder">
-                Download Template CSV
-              </button>
-            </div>
-          </form>
-          <div id="status-csv" class="status-simpan"></div>
-        </div>
-      </div>
-
-      <!-- TAB 2: Daftar, Edit & Hapus Soal -->
-      <div id="tab-bank-soal" class="konten-tab-guru" style="display:none;">
-        <div class="panel-soal">
-          <div class="kepala-panel flex-wrap-bar">
-            <div>
-              <h2>Daftar Soal Tersimpan</h2>
-              <p class="subjudul-panel">Periksa, ubah, atau hapus soal yang sudah tersimpan di <code>BankSoal</code> &amp; <code>Kunci</code>.</p>
-            </div>
-            <div class="baris-aksi">
-              <input type="text" id="filter-mapel-soal" placeholder="Filter mapel (kosong = semua)" />
-              <button type="button" id="btn-muat-soal" class="btn-sekunder">Muat Daftar Soal</button>
-            </div>
-          </div>
-
-          <!-- Form Edit Soal (muncul saat tombol Edit diklik) -->
-          <div id="panel-edit-soal" class="kartu-edit-soal" style="display:none;">
-            <h3 style="margin-bottom:10px;">Edit Soal</h3>
-            <form id="form-edit-soal" style="display:grid; gap:10px;">
+            <form id="form-simpan-jadwal" style="display:grid; gap:12px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:10px; border:1px solid #cbd5e1;">
               <div class="grid-form-4">
-                <input type="text" id="edit-id" placeholder="ID Soal" required />
-                <input type="text" id="edit-mapel" placeholder="Mapel" required />
-                <select id="edit-kunci" required>
-                  <option value="A">Kunci: A</option>
-                  <option value="B">Kunci: B</option>
-                  <option value="C">Kunci: C</option>
-                  <option value="D">Kunci: D</option>
-                  <option value="E">Kunci: E</option>
+                <div class="label-field">
+                  <span>Mata Pelajaran</span>
+                  <input type="text" id="j-mapel" placeholder="Contoh: Kimia" required />
+                </div>
+                <div class="label-field">
+                  <span>Target Kelas</span>
+                  <select id="j-kelas" required>
+                    <option value="X">Kelas X (10)</option>
+                    <option value="XI">Kelas XI (11)</option>
+                    <option value="XII">Kelas XII (12)</option>
+                    <option value="SEMUA">SEMUA KELAS</option>
+                  </select>
+                </div>
+                <div class="label-field">
+                  <span>Waktu Mulai</span>
+                  <input type="datetime-local" id="j-mulai" />
+                </div>
+                <div class="label-field">
+                  <span>Waktu Selesai</span>
+                  <input type="datetime-local" id="j-selesai" />
+                </div>
+                <div class="label-field">
+                  <span>Status</span>
+                  <select id="j-status" required>
+                    <option value="AKTIF">AKTIF</option>
+                    <option value="NONAKTIF">NONAKTIF</option>
+                  </select>
+                </div>
+              </div>
+              <div class="baris-aksi">
+                <button type="submit" id="btn-simpan-jadwal" class="tombol-masuk" style="width:auto; padding:10px 18px;">
+                  Simpan Jadwal
+                </button>
+                <button type="button" id="btn-reset-form-jadwal" class="btn-sekunder">
+                  Bersihkan Form
+                </button>
+              </div>
+            </form>
+
+            <div class="bungkus-tabel">
+              <table class="tabel-data">
+                <thead>
+                  <tr>
+                    <th>Mapel</th>
+                    <th>Kelas</th>
+                    <th>Waktu Mulai</th>
+                    <th>Waktu Selesai</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-jadwal">
+                  <tr><td colspan="6" class="sel-kosong">Memuat jadwal ujian...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="status-jadwal" class="status-simpan"></div>
+          </div>
+        </div>
+
+        <!-- TAB 1: Input & Import Soal -->
+        <div id="tab-input-soal" class="konten-tab-guru" style="display:none; flex-direction:column; gap:18px;">
+          <!-- Tambah Soal Satu per Satu -->
+          <div class="panel-soal">
+            <div class="kepala-panel">
+              <div>
+                <h2>Tambah Soal Satuan</h2>
+                <p class="subjudul-panel">Input satu butir soal pilihan ganda (opsi A–E) beserta kunci, bobot, dan target kelas.</p>
+              </div>
+            </div>
+            <form id="form-upload-soal" style="display:grid; gap:12px;">
+              <div class="grid-form-4">
+                <input type="text" id="s-id" placeholder="ID Soal (misal: KIM01)" required />
+                <input type="text" id="s-mapel" placeholder="Mapel (misal: Kimia)" required />
+                <select id="s-kunci" required>
+                  <option value="">Kunci Jawaban</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                  <option value="E">E</option>
                 </select>
-                <input type="number" id="edit-bobot" min="1" placeholder="Bobot" required />
-                <select id="edit-kelas">
+                <input type="number" id="s-bobot" value="1" min="1" placeholder="Bobot" />
+                <select id="s-kelas">
                   <option value="SEMUA">Kelas: SEMUA</option>
                   <option value="X">Kelas: X (10)</option>
                   <option value="XI">Kelas: XI (11)</option>
                   <option value="XII">Kelas: XII (12)</option>
                 </select>
               </div>
-              <textarea id="edit-tanya" rows="2" placeholder="Pertanyaan soal" required></textarea>
+              <textarea id="s-tanya" rows="2" placeholder="Tulis pertanyaan soal..." required></textarea>
               <div class="grid-opsi-5">
-                <input type="text" id="edit-a" placeholder="Opsi A" required />
-                <input type="text" id="edit-b" placeholder="Opsi B" required />
-                <input type="text" id="edit-c" placeholder="Opsi C" required />
-                <input type="text" id="edit-d" placeholder="Opsi D" required />
-                <input type="text" id="edit-e" placeholder="Opsi E" />
+                <input type="text" id="s-a" placeholder="Opsi A" required />
+                <input type="text" id="s-b" placeholder="Opsi B" required />
+                <input type="text" id="s-c" placeholder="Opsi C" required />
+                <input type="text" id="s-d" placeholder="Opsi D" required />
+                <input type="text" id="s-e" placeholder="Opsi E" required />
               </div>
-              <div class="baris-aksi">
-                <button type="submit" id="btn-simpan-edit" class="tombol-masuk">Simpan Perubahan Soal</button>
-                <button type="button" id="btn-batal-edit" class="btn-sekunder">Batal</button>
+              <div>
+                <button type="submit" id="btn-simpan-soal" class="tombol-masuk">Simpan Soal ke Google Sheets</button>
               </div>
             </form>
+            <div id="status-guru" class="status-simpan"></div>
           </div>
 
-          <div class="bungkus-tabel">
-            <table class="tabel-data">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Mapel &amp; Kelas</th>
-                  <th>Pertanyaan &amp; Opsi</th>
-                  <th>Kunci</th>
-                  <th>Bobot</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-soal">
-                <tr><td colspan="6" class="sel-kosong">Klik "Muat Daftar Soal" untuk melihat soal.</td></tr>
-              </tbody>
-            </table>
+          <!-- Upload / Tempel Banyak Soal Sekaligus -->
+          <div class="panel-soal">
+            <div class="kepala-panel">
+              <div>
+                <h2>Tempel Banyak Soal Sekaligus</h2>
+                <p class="subjudul-panel">
+                  Satu soal per baris dengan pemisah tanda <strong>|</strong>:
+                  <code>ID_Soal | Mapel | Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Opsi E | Kunci | Bobot | Kelas</code>
+                </p>
+              </div>
+            </div>
+            <form id="form-upload-massal" style="display:grid; gap:12px;">
+              <textarea
+                id="s-massal"
+                rows="5"
+                placeholder="KIM01 | Kimia | Apa lambang unsur Natrium? | Na | K | Fe | Cl | Mg | A | 1 | X&#10;BAR01 | Bahasa Arab | Arti kata 'المعلم' adalah... | Siswa | Guru | Kepala Madrasah | Buku | Perpustakaan | B | 2 | XI"
+                required
+              ></textarea>
+              <div class="baris-aksi">
+                <button type="submit" id="btn-simpan-massal" class="tombol-masuk">
+                  Upload Semua Soal ke Google Sheets
+                </button>
+                <button type="button" id="btn-isi-contoh" class="btn-sekunder">
+                  Isi Contoh Format
+                </button>
+              </div>
+            </form>
+            <div id="status-massal" class="status-simpan"></div>
           </div>
-          <div id="status-kelola-soal" class="status-simpan"></div>
+
+          <!-- Upload Soal dari File CSV -->
+          <div class="panel-soal">
+            <div class="kepala-panel">
+              <div>
+                <h2>Import Soal dari File CSV</h2>
+                <p class="subjudul-panel">
+                  Urutan kolom:
+                  <code>ID_Soal, Mapel, Pertanyaan, Opsi_A, Opsi_B, Opsi_C, Opsi_D, Opsi_E, Kunci, Bobot, Kelas</code>
+                </p>
+              </div>
+            </div>
+            <form id="form-upload-csv" style="display:grid; gap:12px;">
+              <input
+                type="file"
+                id="file-soal-csv"
+                accept=".csv,text/csv"
+                required
+                class="input-file-csv"
+              />
+              <div class="baris-aksi">
+                <button type="submit" id="btn-upload-csv" class="tombol-masuk">
+                  Import CSV ke Google Sheets
+                </button>
+                <button type="button" id="btn-download-template-csv" class="btn-sekunder">
+                  Download Template CSV
+                </button>
+              </div>
+            </form>
+            <div id="status-csv" class="status-simpan"></div>
+          </div>
         </div>
-      </div>
 
-      <!-- TAB 3: Hasil & Unduh Hasil Siswa -->
-      <div id="tab-hasil-ujian" class="konten-tab-guru" style="display:none;">
-        <div class="panel-soal">
-          <div class="kepala-panel flex-wrap-bar">
-            <div>
-              <h2>Hasil &amp; Jawaban Siswa</h2>
-              <p class="subjudul-panel">Pantau skor, jumlah pelanggaran layar, dan rekap jawaban siswa per mata pelajaran.</p>
+        <!-- TAB 2: Daftar, Edit & Hapus Soal -->
+        <div id="tab-bank-soal" class="konten-tab-guru" style="display:none;">
+          <div class="panel-soal">
+            <div class="kepala-panel flex-wrap-bar">
+              <div>
+                <h2>Daftar Soal Tersimpan</h2>
+                <p class="subjudul-panel">Periksa, ubah, atau hapus soal yang sudah tersimpan di <code>BankSoal</code> &amp; <code>Kunci</code>.</p>
+              </div>
+              <div class="baris-aksi">
+                <input type="text" id="filter-mapel-soal" placeholder="Filter mapel (kosong = semua)" />
+                <button type="button" id="btn-muat-soal" class="btn-sekunder">Muat Daftar Soal</button>
+              </div>
             </div>
-            <div class="baris-aksi">
-              <input type="text" id="filter-mapel-hasil" placeholder="Filter mapel (kosong = semua)" />
-              <button type="button" id="btn-muat-hasil" class="btn-sekunder">Muat Hasil</button>
-              <button type="button" id="btn-export-csv" class="btn-selesai">Download CSV</button>
+
+            <!-- Form Edit Soal (muncul saat tombol Edit diklik) -->
+            <div id="panel-edit-soal" class="kartu-edit-soal" style="display:none;">
+              <h3 style="margin-bottom:10px;">Edit Soal</h3>
+              <form id="form-edit-soal" style="display:grid; gap:10px;">
+                <div class="grid-form-4">
+                  <input type="text" id="edit-id" placeholder="ID Soal" required />
+                  <input type="text" id="edit-mapel" placeholder="Mapel" required />
+                  <select id="edit-kunci" required>
+                    <option value="A">Kunci: A</option>
+                    <option value="B">Kunci: B</option>
+                    <option value="C">Kunci: C</option>
+                    <option value="D">Kunci: D</option>
+                    <option value="E">Kunci: E</option>
+                  </select>
+                  <input type="number" id="edit-bobot" min="1" placeholder="Bobot" required />
+                  <select id="edit-kelas">
+                    <option value="SEMUA">Kelas: SEMUA</option>
+                    <option value="X">Kelas: X (10)</option>
+                    <option value="XI">Kelas: XI (11)</option>
+                    <option value="XII">Kelas: XII (12)</option>
+                  </select>
+                </div>
+                <textarea id="edit-tanya" rows="2" placeholder="Pertanyaan soal" required></textarea>
+                <div class="grid-opsi-5">
+                  <input type="text" id="edit-a" placeholder="Opsi A" required />
+                  <input type="text" id="edit-b" placeholder="Opsi B" required />
+                  <input type="text" id="edit-c" placeholder="Opsi C" required />
+                  <input type="text" id="edit-d" placeholder="Opsi D" required />
+                  <input type="text" id="edit-e" placeholder="Opsi E" />
+                </div>
+                <div class="baris-aksi">
+                  <button type="submit" id="btn-simpan-edit" class="tombol-masuk">Simpan Perubahan Soal</button>
+                  <button type="button" id="btn-batal-edit" class="btn-sekunder">Batal</button>
+                </div>
+              </form>
             </div>
-          </div>
-          <div class="bungkus-tabel">
-            <table id="tabel-hasil" class="tabel-data">
-              <thead>
-                <tr>
-                  <th>Waktu</th>
-                  <th>NIS</th>
-                  <th>Nama</th>
-                  <th>Kelas</th>
-                  <th>Mapel</th>
-                  <th>Skor</th>
-                  <th>Pelanggaran</th>
-                  <th>Jawaban Siswa</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-hasil">
-                <tr><td colspan="8" class="sel-kosong">Klik "Muat Hasil" untuk melihat data.</td></tr>
-              </tbody>
-            </table>
+
+            <div class="bungkus-tabel">
+              <table class="tabel-data">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Mapel &amp; Kelas</th>
+                    <th>Pertanyaan &amp; Opsi</th>
+                    <th>Kunci</th>
+                    <th>Bobot</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-soal">
+                  <tr><td colspan="6" class="sel-kosong">Klik "Muat Daftar Soal" untuk melihat soal.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="status-kelola-soal" class="status-simpan"></div>
           </div>
         </div>
-      </div>
 
-      <!-- TAB 4: Reset Ujian Siswa -->
-      <div id="tab-reset-ujian" class="konten-tab-guru" style="display:none;">
-        <div class="panel-soal" style="max-width: 680px;">
-          <div class="kepala-panel">
-            <div>
-              <h2>Reset Ujian Siswa</h2>
-              <p class="subjudul-panel">
-                Hapus riwayat sesi/nilai di <code>RekapNilai</code> agar siswa dapat login ulang pada mata pelajaran tersebut. Kosongkan mapel jika ingin mereset semua mapel untuk NIS tersebut.
-              </p>
+        <!-- TAB 3: Hasil & Unduh Hasil Siswa -->
+        <div id="tab-hasil-ujian" class="konten-tab-guru" style="display:none;">
+          <div class="panel-soal">
+            <div class="kepala-panel flex-wrap-bar">
+              <div>
+                <h2>Hasil &amp; Jawaban Siswa</h2>
+                <p class="subjudul-panel">Pantau skor, jumlah pelanggaran layar, dan rekap jawaban siswa per mata pelajaran.</p>
+              </div>
+              <div class="baris-aksi">
+                <input type="text" id="filter-mapel-hasil" placeholder="Filter mapel (kosong = semua)" />
+                <button type="button" id="btn-muat-hasil" class="btn-sekunder">Muat Hasil</button>
+                <button type="button" id="btn-export-csv" class="btn-selesai">Download CSV</button>
+              </div>
+            </div>
+            <div class="bungkus-tabel">
+              <table id="tabel-hasil" class="tabel-data">
+                <thead>
+                  <tr>
+                    <th>Waktu</th>
+                    <th>NIS</th>
+                    <th>Nama</th>
+                    <th>Kelas</th>
+                    <th>Mapel</th>
+                    <th>Skor</th>
+                    <th>Pelanggaran</th>
+                    <th>Jawaban Siswa</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-hasil">
+                  <tr><td colspan="8" class="sel-kosong">Klik "Muat Hasil" untuk melihat data.</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
+        </div>
 
-          <form id="form-reset-ujian" style="display:grid; gap:12px;">
-            <div class="grid-form-2">
-              <input type="text" id="reset-nis" placeholder="NIS Siswa (wajib)" required />
-              <input type="text" id="reset-mapel" placeholder="Nama Mapel (opsional, misal: Kimia)" />
+        <!-- TAB 4: Reset Ujian Siswa -->
+        <div id="tab-reset-ujian" class="konten-tab-guru" style="display:none;">
+          <div class="panel-soal" style="max-width: 680px;">
+            <div class="kepala-panel">
+              <div>
+                <h2>Reset Ujian Siswa</h2>
+                <p class="subjudul-panel">
+                  Hapus riwayat sesi/nilai di <code>RekapNilai</code> agar siswa dapat login ulang pada mata pelajaran tersebut. Kosongkan mapel jika ingin mereset semua mapel untuk NIS tersebut.
+                </p>
+              </div>
             </div>
-            <div>
-              <button type="submit" id="btn-reset-ujian" class="btn-bahaya">
-                Reset Ujian Siswa
-              </button>
-            </div>
-          </form>
-          <div id="status-reset" class="status-simpan"></div>
+
+            <form id="form-reset-ujian" style="display:grid; gap:12px;">
+              <div class="grid-form-2">
+                <input type="text" id="reset-nis" placeholder="NIS Siswa (wajib)" required />
+                <input type="text" id="reset-mapel" placeholder="Nama Mapel (opsional, misal: Kimia)" />
+              </div>
+              <div>
+                <button type="submit" id="btn-reset-ujian" class="btn-bahaya">
+                  Reset Ujian Siswa
+                </button>
+              </div>
+            </form>
+            <div id="status-reset" class="status-simpan"></div>
+          </div>
         </div>
       </div>
     </section>
