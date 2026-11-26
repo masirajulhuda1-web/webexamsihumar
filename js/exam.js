@@ -381,4 +381,3 @@ tampilkanGridNomor();
 pulihkanStatusPelanggaran();
 const intervalTimer = setInterval(perbaruiTimer, 1000);
 perbaruiTimer();
-```[cite: 8]
