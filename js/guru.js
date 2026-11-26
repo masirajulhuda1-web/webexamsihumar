@@ -5,6 +5,7 @@ let dataHasilTerakhir = [];
 let daftarSoalCache = [];
 let daftarJadwalCache = [];
 let targetEditSoal = null;
+let dataHasilMentah = [];
 
 function setSidebarMobile(terbuka) {
   const sidebar = document.getElementById("sidebar-guru");
@@ -548,8 +549,6 @@ document.getElementById("form-upload-soal")?.addEventListener("submit", async (e
   }
 });
 
-let dataHasilMentah = [];
-
 function normalisasiKelasHasil(kelas) {
   const bersih = String(kelas || "")
     .trim()
@@ -628,6 +627,7 @@ function renderTabelHasil() {
     tbody.appendChild(tr);
   });
 }
+
 async function muatHasilSiswa() {
   if (!kredensialGuru) return;
   const mapelFilter = document.getElementById("filter-mapel-hasil")?.value.trim() || "";
@@ -797,29 +797,6 @@ if (formUploadMassal) {
     }
   });
 }
-
-document.getElementById("btn-muat-hasil")?.addEventListener("click", muatHasilSiswa);
-
-document.getElementById("btn-export-csv")?.addEventListener("click", () => {
-  if (!dataHasilTerakhir.length) {
-    alert("Tidak ada data untuk diunduh.");
-    return;
-  }
-  const header = ["Waktu", "NIS", "Nama", "Kelas", "Mapel", "Skor", "Pelanggaran", "Jawaban_JSON"];
-  const baris = dataHasilTerakhir.map((r) =>
-    [r.waktu, r.nis, r.nama, r.kelas, r.mapel, r.skor, r.pelanggaran ?? 0, r.jawaban]
-      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-      .join(",")
-  );
-  const csvContent = "\uFEFF" + [header.join(","), ...baris].join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "rekap-hasil-ujian-cbt.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-});
 
 function deteksiDelimiterCsv(barisHeader) {
   const jumlahTitikKoma = (barisHeader.match(/;/g) || []).length;
