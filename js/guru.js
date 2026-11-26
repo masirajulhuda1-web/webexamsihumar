@@ -586,6 +586,12 @@ function renderRingkasanPerKelas(rows) {
     .join("");
 }
 
+function isSkorFinal(skor) {
+  if (typeof skor === "number" && !isNaN(skor)) return true;
+  const teks = String(skor ?? "").trim().toUpperCase();
+  return teks !== "" && teks !== "DRAFT" && teks !== "-";
+}
+
 function renderTabelHasil() {
   const tbody = document.getElementById("tbody-hasil");
   if (!tbody) return;
@@ -593,14 +599,16 @@ function renderTabelHasil() {
   const kelasDipilih = document.getElementById("filter-kelas-hasil")?.value || "";
   const targetKelasNorm = kelasDipilih ? normalisasiKelasHasil(kelasDipilih) : "";
 
-  dataHasilTerakhir = targetKelasNorm
-    ? dataHasilMentah.filter((row) => normalisasiKelasHasil(row.kelas) === targetKelasNorm)
-    : [...dataHasilMentah];
+  dataHasilTerakhir = dataHasilMentah.filter((row) => {
+    if (!isSkorFinal(row.skor)) return false;
+    if (!targetKelasNorm) return true;
+    return normalisasiKelasHasil(row.kelas) === targetKelasNorm;
+  });
 
   renderRingkasanPerKelas(dataHasilTerakhir);
 
   if (dataHasilTerakhir.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="padding:12px;text-align:center;">Belum ada data hasil ujian untuk filter yang dipilih.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:12px;text-align:center;">Belum ada skor akhir untuk filter yang dipilih.</td></tr>`;
     return;
   }
 
@@ -620,7 +628,6 @@ function renderTabelHasil() {
     tbody.appendChild(tr);
   });
 }
-
 async function muatHasilSiswa() {
   if (!kredensialGuru) return;
   const mapelFilter = document.getElementById("filter-mapel-hasil")?.value.trim() || "";
