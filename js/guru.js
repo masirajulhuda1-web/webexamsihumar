@@ -1,4 +1,3 @@
-// js/guru.js
 const KUNCI_SESI_GURU = "cbt_ma_sihu_guru_sesi";
 
 let kredensialGuru = null;
@@ -142,7 +141,7 @@ function renderTabelSoal() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:600;">${s.idSoal}</td>
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.mapel}</td>
+      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.mapel} <span style="font-size:0.78rem;color:#475569;">(${s.kelas || "SEMUA"})</span></td>
       <td style="padding:8px;border-bottom:1px solid #e2e8f0;max-width:380px;">
         <div style="font-weight:600;margin-bottom:4px;">${s.pertanyaan}</div>
         <div style="font-size:0.8rem;color:#475569;">
@@ -186,6 +185,8 @@ function bukaFormEditSoal(index) {
 
   document.getElementById("edit-kunci").value = soal.kunci || "A";
   document.getElementById("edit-bobot").value = soal.bobot || 1;
+  const editKelas = document.getElementById("edit-kelas");
+  if (editKelas) editKelas.value = soal.kelas || "SEMUA";
 
   const panelEdit = document.getElementById("panel-edit-soal");
   panelEdit.style.display = "block";
@@ -215,7 +216,8 @@ document.getElementById("form-edit-soal")?.addEventListener("submit", async (e) 
     opsiD: document.getElementById("edit-d").value.trim(),
     opsiE: document.getElementById("edit-e")?.value.trim() || "",
     kunci: document.getElementById("edit-kunci").value,
-    bobot: Number(document.getElementById("edit-bobot").value) || 1
+    bobot: Number(document.getElementById("edit-bobot").value) || 1,
+    kelas: document.getElementById("edit-kelas")?.value.trim() || "SEMUA"
   };
 
   try {
@@ -295,7 +297,8 @@ document.getElementById("form-upload-soal")?.addEventListener("submit", async (e
     opsiD: document.getElementById("s-d").value.trim(),
     opsiE: document.getElementById("s-e")?.value.trim() || "",
     kunci: document.getElementById("s-kunci").value,
-    bobot: Number(document.getElementById("s-bobot").value) || 1
+    bobot: Number(document.getElementById("s-bobot").value) || 1,
+    kelas: document.getElementById("s-kelas")?.value.trim() || "SEMUA"
   };
 
   try {
@@ -321,6 +324,7 @@ document.getElementById("form-upload-soal")?.addEventListener("submit", async (e
     document.getElementById("s-d").value = "";
     if (document.getElementById("s-e")) document.getElementById("s-e").value = "";
     document.getElementById("s-kunci").value = "";
+    if (document.getElementById("s-kelas")) document.getElementById("s-kelas").value = "SEMUA";
     await muatDaftarSoal();
   } catch (err) {
     alert(err.message);
@@ -404,6 +408,7 @@ function parseSoalMassal(teks, mapelDefault) {
     const opsiE = punyaOpsiE ? bagian[7] || "" : "";
     const kunciHuruf = String(punyaOpsiE ? bagian[8] : bagian[7] || "").toUpperCase();
     const bobot = punyaOpsiE ? bagian[9] : bagian[8];
+    const kelas = punyaOpsiE && bagian[10] ? bagian[10] : "SEMUA";
 
     if (!idSoal || !pertanyaan || !["A", "B", "C", "D", "E"].includes(kunciHuruf)) {
       barisBermasalah.push(idx + 1);
@@ -420,7 +425,8 @@ function parseSoalMassal(teks, mapelDefault) {
       opsiD,
       opsiE,
       kunci: kunciHuruf,
-      bobot: Number(bobot) > 0 ? Number(bobot) : 1
+      bobot: Number(bobot) > 0 ? Number(bobot) : 1,
+      kelas
     });
   });
 
@@ -581,6 +587,7 @@ function parseFileCsvKeSoal(teksCsv, mapelDefault) {
     const opsiE = punyaOpsiE ? kolom[7] || "" : "";
     const kunci = String(punyaOpsiE ? kolom[8] : kolom[7] || "").toUpperCase();
     const bobot = punyaOpsiE ? kolom[9] : kolom[8];
+    const kelas = punyaOpsiE && kolom[10] ? kolom[10] : "SEMUA";
 
     if (!idSoal || !pertanyaan || !["A", "B", "C", "D", "E"].includes(kunci)) {
       barisBermasalah.push(idx + 1);
@@ -597,7 +604,8 @@ function parseFileCsvKeSoal(teksCsv, mapelDefault) {
       opsiD,
       opsiE,
       kunci,
-      bobot: Number(bobot) > 0 ? Number(bobot) : 1
+      bobot: Number(bobot) > 0 ? Number(bobot) : 1,
+      kelas
     });
   });
 
@@ -607,9 +615,9 @@ function parseFileCsvKeSoal(teksCsv, mapelDefault) {
 document.getElementById("btn-download-template-csv")?.addEventListener("click", () => {
   const mapelContoh = document.getElementById("s-mapel")?.value.trim() || "Kimia";
   const isiTemplate = [
-    "ID_Soal,Mapel,Pertanyaan,Opsi_A,Opsi_B,Opsi_C,Opsi_D,Opsi_E,Kunci,Bobot",
-    `SOAL01,${mapelContoh},"Lambang unsur Natrium adalah...",Na,K,Fe,Cl,Mg,A,1`,
-    `SOAL02,${mapelContoh},"Rumus kimia air adalah...",CO2,H2O,NaCl,O2,H2SO4,B,2`
+    "ID_Soal,Mapel,Pertanyaan,Opsi_A,Opsi_B,Opsi_C,Opsi_D,Opsi_E,Kunci,Bobot,Kelas",
+    `SOAL01,${mapelContoh},"Lambang unsur Natrium adalah...",Na,K,Fe,Cl,Mg,A,1,X`,
+    `SOAL02,${mapelContoh},"Rumus kimia air adalah...",CO2,H2O,NaCl,O2,H2SO4,B,2,X`
   ].join("\n");
 
   const blob = new Blob(["\uFEFF" + isiTemplate], { type: "text/csv;charset=utf-8;" });
