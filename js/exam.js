@@ -31,39 +31,7 @@ function muatSesi() {
     jawaban: {},
     pelanggaran: 0
   };
-let ukuranAwal = {
-  w: window.innerWidth,
-  h: window.innerHeight
-};
-let waktuPelanggaranTerakhir = 0;
 
-function catatPelanggaranAman(alasan) {
-  const sekarang = Date.now();
-  // Cegah double-count dalam 1.2 detik untuk event yang berdekatan (misal blur + visibilitychange)
-  if (sekarang - waktuPelanggaranTerakhir < 1200) return;
-  waktuPelanggaranTerakhir = sekarang;
-  catatPelanggaran(alasan);
-}
-
-window.addEventListener("resize", () => {
-  if (sedangProsesKirim || !daftarSoalAktif.length) return;
-  const selisihLebar = Math.abs(window.innerWidth - ukuranAwal.w);
-  const selisihTinggi = Math.abs(window.innerHeight - ukuranAwal.h);
-
-  // Abaikan perubahan kecil (< 120px) agar keyboard HP tidak selalu memicu pelanggaran
-  if (selisihLebar > 150 || selisihTinggi > 220) {
-    ukuranAwal = { w: window.innerWidth, h: window.innerHeight };
-    catatPelanggaranAman("perubahan ukuran layar / layar terbagi / layar mengambang");
-  }
-});
-
-document.addEventListener("fullscreenchange", () => {
-  if (sedangProsesKirim || !daftarSoalAktif.length) return;
-  if (!document.fullscreenElement) {
-    catatPelanggaranAman("keluar dari mode layar penuh (fullscreen)");
-  }
-});
-  
   localStorage.setItem(KUNCI_STORAGE, JSON.stringify(sesiBaru));
   return sesiBaru;
 }
@@ -72,6 +40,12 @@ let sesi = muatSesi();
 const daftarSoalAktif = Array.isArray(sesi.soalList) ? sesi.soalList : [];
 let jumlahPelanggaran = Number(sesi.pelanggaran || 0);
 let sedangProsesKirim = false;
+
+let ukuranAwal = {
+  w: window.innerWidth,
+  h: window.innerHeight
+};
+let waktuPelanggaranTerakhir = 0;
 
 function simpanSesi() {
   sesi.pelanggaran = jumlahPelanggaran;
@@ -313,6 +287,14 @@ function catatPelanggaran(alasan) {
   );
 }
 
+function catatPelanggaranAman(alasan) {
+  if (sedangProsesKirim || !daftarSoalAktif.length) return;
+  const sekarang = Date.now();
+  if (sekarang - waktuPelanggaranTerakhir < 1200) return;
+  waktuPelanggaranTerakhir = sekarang;
+  catatPelanggaran(alasan);
+}
+
 document.getElementById("btn-prev").addEventListener("click", () => {
   if (sesi.indeksAktif > 0) {
     sesi.indeksAktif -= 1;
@@ -354,7 +336,25 @@ window.addEventListener("keydown", (e) => {
     setTimeout(() => {
       document.body.classList.remove("mode-tangkap-layar");
     }, 2500);
-    catatPelanggaran("upaya tangkap layar (screenshot)");
+    catatPelanggaranAman("upaya tangkap layar (screenshot)");
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (sedangProsesKirim || !daftarSoalAktif.length) return;
+  const selisihLebar = Math.abs(window.innerWidth - ukuranAwal.w);
+  const selisihTinggi = Math.abs(window.innerHeight - ukuranAwal.h);
+
+  if (selisihLebar > 150 || selisihTinggi > 220) {
+    ukuranAwal = { w: window.innerWidth, h: window.innerHeight };
+    catatPelanggaranAman("perubahan ukuran layar / layar terbagi / layar mengambang");
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  if (sedangProsesKirim || !daftarSoalAktif.length) return;
+  if (!document.fullscreenElement) {
+    catatPelanggaranAman("keluar dari mode layar penuh (fullscreen)");
   }
 });
 
@@ -363,12 +363,13 @@ document.addEventListener("visibilitychange", () => {
     document.body.classList.add("tersembunyi");
   } else {
     document.body.classList.remove("tersembunyi");
-    catatPelanggaran("keluar dari halaman ujian / pindah tab");
+    catatPelanggaranAman("keluar dari halaman ujian / pindah tab");
   }
 });
 
 window.addEventListener("blur", () => {
   document.body.classList.add("mode-tangkap-layar");
+  catatPelanggaranAman("kehilangan fokus jendela ujian");
 });
 
 window.addEventListener("focus", () => {
@@ -380,3 +381,13 @@ tampilkanGridNomor();
 pulihkanStatusPelanggaran();
 const intervalTimer = setInterval(perbaruiTimer, 1000);
 perbaruiTimer();
+```[cite: 8]
+
+---
+
+## Panduan Singkat Uji Coba
+* **Pastikan login memakai akun/soal valid** (`daftarSoalAktif.length > 0`), karena deteksi pelanggaran layar sengaja tidak dijalankan saat halaman berada pada kondisi "Soal tidak ditemukan"[cite: 8].
+* **Uji fokus:** Coba pindah tab browser, klik jendela/aplikasi lain, atau buka *split screen* / *floating window* lalu perhatikan banner peringatan dan jumlah pelanggaran di `RekapNilai`.
+* **Uji ukuran layar:** Ubah ukuran jendela browser di laptop atau aktifkan *split screen* di HP/tablet, lalu pastikan ambang batas (`> 150px` lebar atau `> 220px` tinggi) tidak terlalu sensitif saat keyboard muncul.
+
+Setelah mengganti `js/exam.js` dengan kode di atas, bagaimana hasil uji cobanya saat fokus jendela berpindah atau ukuran layar diubah?
