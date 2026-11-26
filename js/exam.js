@@ -31,7 +31,39 @@ function muatSesi() {
     jawaban: {},
     pelanggaran: 0
   };
+let ukuranAwal = {
+  w: window.innerWidth,
+  h: window.innerHeight
+};
+let waktuPelanggaranTerakhir = 0;
 
+function catatPelanggaranAman(alasan) {
+  const sekarang = Date.now();
+  // Cegah double-count dalam 1.2 detik untuk event yang berdekatan (misal blur + visibilitychange)
+  if (sekarang - waktuPelanggaranTerakhir < 1200) return;
+  waktuPelanggaranTerakhir = sekarang;
+  catatPelanggaran(alasan);
+}
+
+window.addEventListener("resize", () => {
+  if (sedangProsesKirim || !daftarSoalAktif.length) return;
+  const selisihLebar = Math.abs(window.innerWidth - ukuranAwal.w);
+  const selisihTinggi = Math.abs(window.innerHeight - ukuranAwal.h);
+
+  // Abaikan perubahan kecil (< 120px) agar keyboard HP tidak selalu memicu pelanggaran
+  if (selisihLebar > 150 || selisihTinggi > 220) {
+    ukuranAwal = { w: window.innerWidth, h: window.innerHeight };
+    catatPelanggaranAman("perubahan ukuran layar / layar terbagi / layar mengambang");
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  if (sedangProsesKirim || !daftarSoalAktif.length) return;
+  if (!document.fullscreenElement) {
+    catatPelanggaranAman("keluar dari mode layar penuh (fullscreen)");
+  }
+});
+  
   localStorage.setItem(KUNCI_STORAGE, JSON.stringify(sesiBaru));
   return sesiBaru;
 }
