@@ -77,6 +77,7 @@
 
     #area-kerja-guru input[type="text"],
     #area-kerja-guru input[type="number"],
+    #area-kerja-guru input[type="datetime-local"],
     #area-kerja-guru select,
     #area-kerja-guru textarea {
       padding: 9px 11px;
@@ -93,6 +94,15 @@
       outline: none;
       border-color: #15803d;
       box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
+    }
+
+    .label-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #334155;
     }
 
     .input-file-csv {
@@ -144,6 +154,24 @@
       color: #64748b;
     }
 
+    .badge-status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .badge-aktif {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-nonaktif {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
     .btn-bahaya {
       padding: 10px 15px;
       background: #dc2626;
@@ -181,7 +209,7 @@
     <section id="panel-login-guru" class="panel-soal" style="max-width: 480px; margin: 24px auto; width: 100%;">
       <h2 style="margin-bottom:6px;">Login Akun Guru</h2>
       <p style="font-size:0.86rem; color:#64748b; margin-bottom:16px;">
-        Masuk untuk mengelola bank soal, memantau nilai siswa, dan mereset sesi ujian.
+        Masuk untuk mengelola jadwal, bank soal, memantau nilai siswa, dan mereset sesi ujian.
       </p>
       <form id="form-login-guru" class="form-login">
         <div class="grup-input">
@@ -200,20 +228,96 @@
     <section id="area-kerja-guru" style="display:none; flex-direction:column; gap:18px;">
       <!-- Bar Navigasi Tab Panel Guru -->
       <nav class="nav-tab-guru" aria-label="Menu Panel Guru">
-        <button type="button" class="tab-guru aktif" data-tab="tab-input-soal">Input &amp; Import Soal</button>
+        <button type="button" class="tab-guru aktif" data-tab="tab-jadwal-ujian">Jadwal Ujian</button>
+        <button type="button" class="tab-guru" data-tab="tab-input-soal">Input &amp; Import Soal</button>
         <button type="button" class="tab-guru" data-tab="tab-bank-soal">Daftar &amp; Edit Soal</button>
         <button type="button" class="tab-guru" data-tab="tab-hasil-ujian">Hasil Ujian Siswa</button>
         <button type="button" class="tab-guru" data-tab="tab-reset-ujian">Reset Ujian</button>
       </nav>
 
+      <!-- TAB 0: Jadwal Ujian per Kelas & Mapel -->
+      <div id="tab-jadwal-ujian" class="konten-tab-guru aktif" style="display:block;">
+        <div class="panel-soal">
+          <div class="kepala-panel flex-wrap-bar">
+            <div>
+              <h2>Pengaturan Jadwal Ujian</h2>
+              <p class="subjudul-panel">
+                Atur mata pelajaran, target kelas (<code>X</code>, <code>XI</code>, <code>XII</code>, atau <code>SEMUA</code>), rentang waktu mulai/selesai, dan status aktif agar siswa hanya bisa ujian sesuai kelas dan jadwalnya.
+              </p>
+            </div>
+            <button type="button" id="btn-muat-jadwal" class="btn-sekunder">Muat Ulang Jadwal</button>
+          </div>
+
+          <form id="form-simpan-jadwal" style="display:grid; gap:12px; margin-bottom:18px; background:#f8fafc; padding:14px; border-radius:10px; border:1px solid #cbd5e1;">
+            <div class="grid-form-4">
+              <div class="label-field">
+                <span>Mata Pelajaran</span>
+                <input type="text" id="j-mapel" placeholder="Contoh: Kimia" required />
+              </div>
+              <div class="label-field">
+                <span>Target Kelas</span>
+                <select id="j-kelas" required>
+                  <option value="X">Kelas X (10)</option>
+                  <option value="XI">Kelas XI (11)</option>
+                  <option value="XII">Kelas XII (12)</option>
+                  <option value="SEMUA">SEMUA KELAS</option>
+                </select>
+              </div>
+              <div class="label-field">
+                <span>Waktu Mulai</span>
+                <input type="datetime-local" id="j-mulai" />
+              </div>
+              <div class="label-field">
+                <span>Waktu Selesai</span>
+                <input type="datetime-local" id="j-selesai" />
+              </div>
+              <div class="label-field">
+                <span>Status</span>
+                <select id="j-status" required>
+                  <option value="AKTIF">AKTIF</option>
+                  <option value="NONAKTIF">NONAKTIF</option>
+                </select>
+              </div>
+            </div>
+            <div class="baris-aksi">
+              <button type="submit" id="btn-simpan-jadwal" class="tombol-masuk" style="width:auto; padding:10px 18px;">
+                Simpan Jadwal
+              </button>
+              <button type="button" id="btn-reset-form-jadwal" class="btn-sekunder">
+                Bersihkan Form
+              </button>
+            </div>
+          </form>
+
+          <div class="bungkus-tabel">
+            <table class="tabel-data">
+              <thead>
+                <tr>
+                  <th>Mapel</th>
+                  <th>Kelas</th>
+                  <th>Waktu Mulai</th>
+                  <th>Waktu Selesai</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-jadwal">
+                <tr><td colspan="6" class="sel-kosong">Memuat jadwal ujian...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="status-jadwal" class="status-simpan"></div>
+        </div>
+      </div>
+
       <!-- TAB 1: Input & Import Soal -->
-      <div id="tab-input-soal" class="konten-tab-guru aktif" style="display:flex; flex-direction:column; gap:18px;">
+      <div id="tab-input-soal" class="konten-tab-guru" style="display:none; flex-direction:column; gap:18px;">
         <!-- Tambah Soal Satu per Satu -->
         <div class="panel-soal">
           <div class="kepala-panel">
             <div>
               <h2>Tambah Soal Satuan</h2>
-              <p class="subjudul-panel">Input satu butir soal pilihan ganda (opsi A–E) beserta kunci dan bobot.</p>
+              <p class="subjudul-panel">Input satu butir soal pilihan ganda (opsi A–E) beserta kunci, bobot, dan target kelas.</p>
             </div>
           </div>
           <form id="form-upload-soal" style="display:grid; gap:12px;">
@@ -229,7 +333,12 @@
                 <option value="E">E</option>
               </select>
               <input type="number" id="s-bobot" value="1" min="1" placeholder="Bobot" />
-              <input type="text" id="s-kelas" value="SEMUA" placeholder="Kelas (cth: X / 10 / SEMUA)" />
+              <select id="s-kelas">
+                <option value="SEMUA">Kelas: SEMUA</option>
+                <option value="X">Kelas: X (10)</option>
+                <option value="XI">Kelas: XI (11)</option>
+                <option value="XII">Kelas: XII (12)</option>
+              </select>
             </div>
             <textarea id="s-tanya" rows="2" placeholder="Tulis pertanyaan soal..." required></textarea>
             <div class="grid-opsi-5">
@@ -253,7 +362,7 @@
               <h2>Tempel Banyak Soal Sekaligus</h2>
               <p class="subjudul-panel">
                 Satu soal per baris dengan pemisah tanda <strong>|</strong>:
-                <code>ID_Soal | Mapel | Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Opsi E | Kunci | Bobot</code>
+                <code>ID_Soal | Mapel | Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Opsi E | Kunci | Bobot | Kelas</code>
               </p>
             </div>
           </div>
@@ -261,7 +370,7 @@
             <textarea
               id="s-massal"
               rows="5"
-              placeholder="KIM01 | Kimia | Apa lambang unsur Natrium? | Na | K | Fe | Cl | Mg | A | 1&#10;BAR01 | Bahasa Arab | Arti kata 'المعلم' adalah... | Siswa | Guru | Kepala Madrasah | Buku | Perpustakaan | B | 2"
+              placeholder="KIM01 | Kimia | Apa lambang unsur Natrium? | Na | K | Fe | Cl | Mg | A | 1 | X&#10;BAR01 | Bahasa Arab | Arti kata 'المعلم' adalah... | Siswa | Guru | Kepala Madrasah | Buku | Perpustakaan | B | 2 | XI"
               required
             ></textarea>
             <div class="baris-aksi">
@@ -283,7 +392,7 @@
               <h2>Import Soal dari File CSV</h2>
               <p class="subjudul-panel">
                 Urutan kolom:
-                <code>ID_Soal, Mapel, Pertanyaan, Opsi_A, Opsi_B, Opsi_C, Opsi_D, Opsi_E, Kunci, Bobot</code>
+                <code>ID_Soal, Mapel, Pertanyaan, Opsi_A, Opsi_B, Opsi_C, Opsi_D, Opsi_E, Kunci, Bobot, Kelas</code>
               </p>
             </div>
           </div>
@@ -337,7 +446,12 @@
                   <option value="E">Kunci: E</option>
                 </select>
                 <input type="number" id="edit-bobot" min="1" placeholder="Bobot" required />
-                <input type="text" id="edit-kelas" placeholder="Kelas (cth: X / 10 / SEMUA)" />
+                <select id="edit-kelas">
+                  <option value="SEMUA">Kelas: SEMUA</option>
+                  <option value="X">Kelas: X (10)</option>
+                  <option value="XI">Kelas: XI (11)</option>
+                  <option value="XII">Kelas: XII (12)</option>
+                </select>
               </div>
               <textarea id="edit-tanya" rows="2" placeholder="Pertanyaan soal" required></textarea>
               <div class="grid-opsi-5">
@@ -359,7 +473,7 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Mapel</th>
+                  <th>Mapel &amp; Kelas</th>
                   <th>Pertanyaan &amp; Opsi</th>
                   <th>Kunci</th>
                   <th>Bobot</th>
@@ -448,4 +562,3 @@
   <script src="js/guru.js"></script>
 </body>
 </html>
-Analyzing
