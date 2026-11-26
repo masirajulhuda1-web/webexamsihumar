@@ -727,4 +727,3 @@ document.getElementById("form-reset-ujian")?.addEventListener("submit", async (e
 });
 
 pulihkanSesiGuru();
-```[cite: 11]
