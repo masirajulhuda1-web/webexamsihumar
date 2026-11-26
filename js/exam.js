@@ -382,12 +382,3 @@ pulihkanStatusPelanggaran();
 const intervalTimer = setInterval(perbaruiTimer, 1000);
 perbaruiTimer();
 ```[cite: 8]
-
----
-
-## Panduan Singkat Uji Coba
-* **Pastikan login memakai akun/soal valid** (`daftarSoalAktif.length > 0`), karena deteksi pelanggaran layar sengaja tidak dijalankan saat halaman berada pada kondisi "Soal tidak ditemukan"[cite: 8].
-* **Uji fokus:** Coba pindah tab browser, klik jendela/aplikasi lain, atau buka *split screen* / *floating window* lalu perhatikan banner peringatan dan jumlah pelanggaran di `RekapNilai`.
-* **Uji ukuran layar:** Ubah ukuran jendela browser di laptop atau aktifkan *split screen* di HP/tablet, lalu pastikan ambang batas (`> 150px` lebar atau `> 220px` tinggi) tidak terlalu sensitif saat keyboard muncul.
-
-Setelah mengganti `js/exam.js` dengan kode di atas, bagaimana hasil uji cobanya saat fokus jendela berpindah atau ukuran layar diubah?
