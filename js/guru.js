@@ -3,6 +3,7 @@ const KUNCI_SESI_GURU = "cbt_ma_sihu_guru_sesi";
 let kredensialGuru = null;
 let dataHasilTerakhir = [];
 let daftarSoalCache = [];
+let daftarJadwalCache = [];
 let targetEditSoal = null;
 
 function aktifkanTampilanGuru(infoGuruData) {
@@ -18,9 +19,11 @@ function aktifkanTampilanGuru(infoGuruData) {
 
   if (infoGuruData?.mapelAmpu && infoGuruData.mapelAmpu.toUpperCase() !== "SEMUA") {
     const sMapel = document.getElementById("s-mapel");
+    const jMapel = document.getElementById("j-mapel");
     const filterHasil = document.getElementById("filter-mapel-hasil");
-    if (sMapel) sMapel.value = infoGuruData.mapelAmpu;
-    if (filterHasil) filterHasil.value = infoGuruData.mapelAmpu;
+    if (sMapel && !sMapel.value) sMapel.value = infoGuruData.mapelAmpu;
+    if (jMapel && !jMapel.value) jMapel.value = infoGuruData.mapelAmpu;
+    if (filterHasil && !filterHasil.value) filterHasil.value = infoGuruData.mapelAmpu;
   }
 }
 
@@ -52,8 +55,11 @@ async function pulihkanSesiGuru() {
     if (tersimpan?.idGuru && tersimpan?.kodeAkses && tersimpan?.guru) {
       kredensialGuru = { idGuru: tersimpan.idGuru, kodeAkses: tersimpan.kodeAkses };
       aktifkanTampilanGuru(tersimpan.guru);
-      await muatHasilSiswa();
-      await muatDaftarSoal();
+      await Promise.all([
+        muatJadwalUjian(),
+        muatHasilSiswa(),
+        muatDaftarSoal()
+      ]);
     }
   } catch (e) {
     sessionStorage.removeItem(KUNCI_SESI_GURU);
@@ -87,13 +93,178 @@ document.getElementById("form-login-guru")?.addEventListener("submit", async (e)
     );
     aktifkanTampilanGuru(hasil.guru);
 
-    await muatHasilSiswa();
-    await muatDaftarSoal();
+    await Promise.all([
+      muatJadwalUjian(),
+      muatHasilSiswa(),
+      muatDaftarSoal()
+    ]);
   } catch (err) {
     alert(err.message);
   } finally {
     btn.disabled = false;
     btn.textContent = "Masuk Panel Guru";
+  }
+});
+
+function toDatetimeLocalValue(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function muatJadwalUjian() {
+  if (!kredensialGuru) return;
+  const tbody = document.getElementById("tbody-jadwal");
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong">Memuat jadwal ujian...</td></tr>`;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "getJadwal",
+        idGuru: kredensialGuru.idGuru,
+        kodeAkses: kredensialGuru.kodeAkses
+      })
+    });
+    const hasil = await res.json();
+    if (hasil.status !== "success") throw new Error(hasil.message);
+
+    daftarJadwalCache = hasil.data || [];
+    renderTabelJadwal();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong" style="color:#b91c1c;">${err.message}</td></tr>`;
+  }
+}
+
+function renderTabelJadwal() {
+  const tbody = document.getElementById("tbody-jadwal");
+  if (!tbody) return;
+
+  if (!daftarJadwalCache.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong">Belum ada jadwal ujian yang diatur.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  daftarJadwalCache.forEach((j, idx) => {
+    const isAktif = j.status === "AKTIF";
+    const badgeClass = isAktif ? "badge-aktif" : "badge-nonaktif";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="font-weight:600;">${j.mapel}</td>
+      <td>${j.kelas}</td>
+      <td>${j.waktuMulaiLabel}</td>
+      <td>${j.waktuSelesaiLabel}</td>
+      <td><span class="badge-status ${badgeClass}">${j.status}</span></td>
+      <td style="white-space:nowrap;">
+        <button type="button" class="btn-sekunder btn-edit-jadwal" data-index="${idx}" style="padding:5px 9px;font-size:0.8rem;">Edit</button>
+        <button type="button" class="btn-hapus-jadwal" data-index="${idx}" style="padding:5px 9px;font-size:0.8rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;">Hapus</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll(".btn-edit-jadwal").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const item = daftarJadwalCache[Number(btn.dataset.index)];
+      if (!item) return;
+      document.getElementById("j-mapel").value = item.mapel;
+      document.getElementById("j-kelas").value = item.kelas || "SEMUA";
+      document.getElementById("j-mulai").value = toDatetimeLocalValue(item.waktuMulai);
+      document.getElementById("j-selesai").value = toDatetimeLocalValue(item.waktuSelesai);
+      document.getElementById("j-status").value = item.status || "AKTIF";
+      document.getElementById("form-simpan-jadwal").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  });
+
+  tbody.querySelectorAll(".btn-hapus-jadwal").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const item = daftarJadwalCache[Number(btn.dataset.index)];
+      if (!item || !kredensialGuru) return;
+      if (!confirm(`Hapus jadwal "${item.mapel}" untuk kelas "${item.kelas}"?`)) return;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "deleteJadwal",
+            idGuru: kredensialGuru.idGuru,
+            kodeAkses: kredensialGuru.kodeAkses,
+            rowIndex: item.rowIndex,
+            mapel: item.mapel,
+            kelas: item.kelas
+          })
+        });
+        const hasil = await res.json();
+        if (hasil.status !== "success") throw new Error(hasil.message);
+
+        const statusEl = document.getElementById("status-jadwal");
+        if (statusEl) statusEl.textContent = hasil.message;
+        await muatJadwalUjian();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  });
+}
+
+document.getElementById("btn-muat-jadwal")?.addEventListener("click", muatJadwalUjian);
+
+document.getElementById("btn-reset-form-jadwal")?.addEventListener("click", () => {
+  document.getElementById("j-mapel").value = "";
+  document.getElementById("j-kelas").value = "X";
+  document.getElementById("j-mulai").value = "";
+  document.getElementById("j-selesai").value = "";
+  document.getElementById("j-status").value = "AKTIF";
+});
+
+document.getElementById("form-simpan-jadwal")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!kredensialGuru) return;
+
+  const btn = document.getElementById("btn-simpan-jadwal");
+  btn.disabled = true;
+  btn.textContent = "Menyimpan jadwal...";
+
+  const mulaiVal = document.getElementById("j-mulai").value;
+  const selesaiVal = document.getElementById("j-selesai").value;
+
+  const jadwalPayload = {
+    mapel: document.getElementById("j-mapel").value.trim(),
+    kelas: document.getElementById("j-kelas").value,
+    waktuMulai: mulaiVal ? new Date(mulaiVal).toISOString() : "",
+    waktuSelesai: selesaiVal ? new Date(selesaiVal).toISOString() : "",
+    status: document.getElementById("j-status").value
+  };
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "saveJadwal",
+        idGuru: kredensialGuru.idGuru,
+        kodeAkses: kredensialGuru.kodeAkses,
+        jadwal: jadwalPayload
+      })
+    });
+    const hasil = await res.json();
+    if (hasil.status !== "success") throw new Error(hasil.message);
+
+    const statusEl = document.getElementById("status-jadwal");
+    if (statusEl) statusEl.textContent = hasil.message;
+    await muatJadwalUjian();
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Simpan Jadwal";
   }
 });
 
@@ -171,7 +342,7 @@ function bukaFormEditSoal(index) {
   const soal = daftarSoalCache[index];
   if (!soal) return;
 
-  targetEditSoal = { idLama: soal.idSoal, mapelLama: soal.mapel };
+  targetEditSoal = { idLama: soal.idSoal, mapelLama: soal.mapel, kelasLama: soal.kelas || "SEMUA" };
   document.getElementById("edit-id").value = soal.idSoal;
   document.getElementById("edit-mapel").value = soal.mapel;
   document.getElementById("edit-tanya").value = soal.pertanyaan;
@@ -186,7 +357,16 @@ function bukaFormEditSoal(index) {
   document.getElementById("edit-kunci").value = soal.kunci || "A";
   document.getElementById("edit-bobot").value = soal.bobot || 1;
   const editKelas = document.getElementById("edit-kelas");
-  if (editKelas) editKelas.value = soal.kelas || "SEMUA";
+  if (editKelas) {
+    const valKelas = soal.kelas || "SEMUA";
+    if (!Array.from(editKelas.options).some((o) => o.value === valKelas)) {
+      const optBaru = document.createElement("option");
+      optBaru.value = valKelas;
+      optBaru.textContent = `Kelas: ${valKelas}`;
+      editKelas.appendChild(optBaru);
+    }
+    editKelas.value = valKelas;
+  }
 
   const panelEdit = document.getElementById("panel-edit-soal");
   panelEdit.style.display = "block";
@@ -230,6 +410,7 @@ document.getElementById("form-edit-soal")?.addEventListener("submit", async (e) 
         kodeAkses: kredensialGuru.kodeAkses,
         idLama: targetEditSoal.idLama,
         mapelLama: targetEditSoal.mapelLama,
+        kelasLama: targetEditSoal.kelasLama,
         soalBaru
       })
     });
@@ -252,7 +433,7 @@ async function hapusSoalByIndex(index) {
   const soal = daftarSoalCache[index];
   if (!soal || !kredensialGuru) return;
 
-  const yakin = confirm(`Hapus soal "${soal.idSoal}" (${soal.mapel}) secara permanen dari BankSoal dan Kunci?`);
+  const yakin = confirm(`Hapus soal "${soal.idSoal}" (${soal.mapel} - ${soal.kelas || "SEMUA"}) secara permanen dari BankSoal dan Kunci?`);
   if (!yakin) return;
 
   try {
@@ -264,7 +445,8 @@ async function hapusSoalByIndex(index) {
         idGuru: kredensialGuru.idGuru,
         kodeAkses: kredensialGuru.kodeAkses,
         idSoal: soal.idSoal,
-        mapel: soal.mapel
+        mapel: soal.mapel,
+        kelas: soal.kelas || "SEMUA"
       })
     });
     const hasil = await res.json();
@@ -438,8 +620,8 @@ if (btnIsiContoh) {
   btnIsiContoh.addEventListener("click", () => {
     const mapelAwal = document.getElementById("s-mapel")?.value.trim() || "Kimia";
     document.getElementById("s-massal").value = [
-      `SOAL01 | ${mapelAwal} | Contoh pertanyaan pilihan ganda pertama? | Pilihan A | Pilihan B | Pilihan C | Pilihan D | Pilihan E | A | 1`,
-      `SOAL02 | ${mapelAwal} | Contoh pertanyaan pilihan ganda kedua? | Pilihan A | Pilihan B | Pilihan C | Pilihan D | Pilihan E | C | 2`
+      `SOAL01 | ${mapelAwal} | Contoh pertanyaan pilihan ganda pertama? | Pilihan A | Pilihan B | Pilihan C | Pilihan D | Pilihan E | A | 1 | X`,
+      `SOAL02 | ${mapelAwal} | Contoh pertanyaan pilihan ganda kedua? | Pilihan A | Pilihan B | Pilihan C | Pilihan D | Pilihan E | C | 2 | X`
     ].join("\n");
   });
 }
