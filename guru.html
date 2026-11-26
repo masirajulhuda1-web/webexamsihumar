@@ -615,20 +615,29 @@
           </div>
         </div>
 
-        <!-- TAB 3: Hasil & Unduh Hasil Siswa -->
+       <!-- TAB 3: Hasil & Unduh Hasil Siswa -->
         <div id="tab-hasil-ujian" class="konten-tab-guru" style="display:none;">
           <div class="panel-soal">
             <div class="kepala-panel flex-wrap-bar">
               <div>
-                <h2>Hasil &amp; Jawaban Siswa</h2>
-                <p class="subjudul-panel">Pantau skor, jumlah pelanggaran layar, dan rekap jawaban siswa per mata pelajaran.</p>
+                <h2>Hasil &amp; Jawaban Siswa (Per Kelas)</h2>
+                <p class="subjudul-panel">Pantau skor, jumlah pelanggaran layar, dan rekap jawaban siswa per mata pelajaran maupun per kelas.</p>
               </div>
               <div class="baris-aksi">
                 <input type="text" id="filter-mapel-hasil" placeholder="Filter mapel (kosong = semua)" />
+                <select id="filter-kelas-hasil">
+                  <option value="">Semua Kelas</option>
+                  <option value="X">Kelas X (10)</option>
+                  <option value="XI">Kelas XI (11)</option>
+                  <option value="XII">Kelas XII (12)</option>
+                </select>
                 <button type="button" id="btn-muat-hasil" class="btn-sekunder">Muat Hasil</button>
                 <button type="button" id="btn-export-csv" class="btn-selesai">Download CSV</button>
               </div>
             </div>
+
+            <div id="ringkasan-kelas-hasil" class="baris-aksi" style="margin-bottom: 12px;"></div>
+
             <div class="bungkus-tabel">
               <table id="tabel-hasil" class="tabel-data">
                 <thead>
@@ -650,7 +659,7 @@
             </div>
           </div>
         </div>
-
+        
         <!-- TAB 4: Reset Ujian Siswa -->
         <div id="tab-reset-ujian" class="konten-tab-guru" style="display:none;">
           <div class="panel-soal" style="max-width: 680px;">
