@@ -301,123 +301,110 @@ document.getElementById("form-simpan-jadwal")?.addEventListener("submit", async 
   }
 });
 
+function escapeHtmlRingkas(teks) {
+  return String(teks ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function normalisasiKelasSoal(kelas) {
+  const k = String(kelas || "SEMUA").trim().toUpperCase().replace(/^KELAS\s+/, "");
+  if (/^(10|X)(\b|[^I])/.test(k)) return "X";
+  if (/^(11|XI)(\b|[^I])/.test(k)) return "XI";
+  if (/^(12|XII)(\b|[^I])/.test(k)) return "XII";
+  return k || "SEMUA";
+}
+
 async function muatDaftarSoal() {
   if (!kredensialGuru) return;
   const mapelFilter = document.getElementById("filter-mapel-soal")?.value.trim() || "";
-  const tbody = document.getElementById("tbody-soal");
-  if (!tbody) return;
-
-  tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;text-align:center;">Memuat daftar soal...</td></tr>`;
+  const kelasFilter = document.getElementById("filter-kelas-soal")?.value || "";
+  const wadah = document.getElementById("daftar-kelompok-soal");
+  if (!wadah) return;
+  wadah.innerHTML = '<div class="sel-kosong">Memuat daftar soal...</div>';
 
   try {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
-        action: "getSoal",
-        idGuru: kredensialGuru.idGuru,
-        kodeAkses: kredensialGuru.kodeAkses,
-        mapelFilter
+        action: "getSoal", idGuru: kredensialGuru.idGuru,
+        kodeAkses: kredensialGuru.kodeAkses, mapelFilter
       })
     });
     const hasil = await res.json();
-    if (hasil.status !== "success") throw new Error(hasil.message);
-
+    if (hasil.status !== "success") throw new Error(hasil.message || "Gagal memuat soal.");
     daftarSoalCache = hasil.data || [];
     renderTabelSoal();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;text-align:center;color:#b91c1c;">${err.message}</td></tr>`;
+    wadah.innerHTML = `<div class="sel-kosong" style="color:#b91c1c;">${escapeHtmlRingkas(err.message)}</div>`;
   }
 }
 
 function renderTabelSoal() {
- function escapeHtmlRingkas(teks) {
-  return String(teks ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+  const wadah = document.getElementById("daftar-kelompok-soal");
+  const ringkasan = document.getElementById("ringkasan-daftar-soal");
+  if (!wadah) return;
 
-function renderTabelSoal() {
-  const tbody = document.getElementById("tbody-soal");
-  if (!tbody) return;
+  const kelasFilter = document.getElementById("filter-kelas-soal")?.value || "";
+  const mapelFilter = (document.getElementById("filter-mapel-soal")?.value || "").trim().toLowerCase();
+  const data = daftarSoalCache.map((soal, indexAsli) => ({ soal, indexAsli }))
+    .filter(({ soal }) => !kelasFilter || normalisasiKelasSoal(soal.kelas) === kelasFilter)
+    .filter(({ soal }) => !mapelFilter || String(soal.mapel || "").toLowerCase().includes(mapelFilter));
 
-  if (!daftarSoalCache.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="sel-kosong">Belum ada soal tersimpan.</td></tr>`;
+  if (ringkasan) ringkasan.textContent = `${data.length} soal ditampilkan dari ${daftarSoalCache.length} soal.`;
+  if (!data.length) {
+    wadah.innerHTML = '<div class="sel-kosong">Tidak ada soal yang cocok dengan filter.</div>';
     return;
   }
 
-  const kelompokMapel = new Map();
-  daftarSoalCache.forEach((soal, indexAsli) => {
-    const namaMapel = String(soal.mapel || "Tanpa Mapel").trim() || "Tanpa Mapel";
-    const kunciKelompok = namaMapel.toLowerCase();
-    if (!kelompokMapel.has(kunciKelompok)) {
-      kelompokMapel.set(kunciKelompok, {
-        labelMapel: namaMapel,
-        items: []
-      });
-    }
-    kelompokMapel.get(kunciKelompok).items.push({ soal, indexAsli });
+  const kelompok = new Map();
+  const urutanKelas = ["X", "XI", "XII", "SEMUA"];
+  data.forEach(item => {
+    const kelas = normalisasiKelasSoal(item.soal.kelas);
+    const mapel = String(item.soal.mapel || "Tanpa Mapel").trim() || "Tanpa Mapel";
+    const key = `${kelas}|||${mapel.toLowerCase()}`;
+    if (!kelompok.has(key)) kelompok.set(key, { kelas, mapel, items: [] });
+    kelompok.get(key).items.push(item);
+  });
+  const daftarKelompok = [...kelompok.values()].sort((a,b) => {
+    const ka = urutanKelas.indexOf(a.kelas), kb = urutanKelas.indexOf(b.kelas);
+    return (ka < 0 ? 99 : ka) - (kb < 0 ? 99 : kb) || a.mapel.localeCompare(b.mapel, "id");
   });
 
-  tbody.innerHTML = "";
+  wadah.innerHTML = "";
+  daftarKelompok.forEach((grup, nomorGrup) => {
+    const totalBobot = grup.items.reduce((n, x) => n + (Number(x.soal.bobot) || 1), 0);
+    const details = document.createElement("details");
+    details.className = "kelompok-bank-soal";
+    details.open = daftarKelompok.length === 1;
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span><strong>Kelas ${escapeHtmlRingkas(grup.kelas)}</strong> <span class="pemisah-grup">/</span> <strong>${escapeHtmlRingkas(grup.mapel)}</strong></span><span class="meta-grup">${grup.items.length} soal · bobot ${totalBobot}</span>`;
+    details.appendChild(summary);
 
-  kelompokMapel.forEach(({ labelMapel, items }) => {
-    const totalBobot = items.reduce((acc, item) => acc + (Number(item.soal.bobot) || 1), 0);
-
-    const trGroup = document.createElement("tr");
-    trGroup.innerHTML = `
-      <td colspan="5" style="padding:8px 12px;background:#ecfdf5;border-top:2px solid #86efac;border-bottom:1px solid #bbf7d0;color:#14532d;font-weight:700;font-size:0.86rem;">
-        ${escapeHtmlRingkas(labelMapel)} &bull; <span style="font-weight:600;">${items.length} soal</span> &bull; <span style="font-weight:600;">Total bobot: ${totalBobot}</span>
-      </td>
-    `;
-    tbody.appendChild(trGroup);
-
-    items.forEach(({ soal: s, indexAsli }) => {
-      const opsiList = [
-        s.opsiA ? `A. ${escapeHtmlRingkas(s.opsiA)}` : "",
-        s.opsiB ? `B. ${escapeHtmlRingkas(s.opsiB)}` : "",
-        s.opsiC ? `C. ${escapeHtmlRingkas(s.opsiC)}` : "",
-        s.opsiD ? `D. ${escapeHtmlRingkas(s.opsiD)}` : "",
-        s.opsiE ? `E. ${escapeHtmlRingkas(s.opsiE)}` : ""
-      ].filter(Boolean);
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:600;white-space:nowrap;">${escapeHtmlRingkas(s.idSoal)}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;font-size:0.82rem;color:#475569;">${escapeHtmlRingkas(s.kelas || "SEMUA")}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;max-width:460px;">
-          <div style="font-weight:600;font-size:0.86rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-            ${escapeHtmlRingkas(s.pertanyaan)}
-          </div>
-          <details style="margin-top:3px;">
-            <summary style="cursor:pointer;font-size:0.78rem;color:#15803d;font-weight:600;user-select:none;">Lihat opsi</summary>
-            <div style="font-size:0.78rem;color:#475569;margin-top:4px;line-height:1.4;">
-              ${opsiList.join(" &bull; ")}
-            </div>
-          </details>
-        </td>
-        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;font-size:0.82rem;">
-          <strong>${escapeHtmlRingkas(s.kunci || "-")}</strong> <span style="color:#64748b;">(bobot ${escapeHtmlRingkas(s.bobot)})</span>
-        </td>
-        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
-          <button type="button" class="btn-sekunder btn-edit-soal" data-index="${indexAsli}" style="padding:4px 8px;font-size:0.78rem;">Edit</button>
-          <button type="button" class="btn-hapus-soal" data-index="${indexAsli}" style="padding:4px 8px;font-size:0.78rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;">Hapus</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
+    const list = document.createElement("div");
+    list.className = "isi-kelompok-soal";
+    grup.items.forEach(({ soal: s, indexAsli }, i) => {
+      const card = document.createElement("article");
+      card.className = "item-bank-soal";
+      const opsi = [s.opsiA, s.opsiB, s.opsiC, s.opsiD, s.opsiE]
+        .filter(v => String(v || "").trim());
+      card.innerHTML = `
+        <div class="kepala-item-soal"><span class="id-item-soal">${escapeHtmlRingkas(s.idSoal || `Soal ${i+1}`)}</span><span class="bobot-item-soal">Bobot: ${escapeHtmlRingkas(s.bobot || 1)} · Kunci: ${escapeHtmlRingkas(s.kunci || "-")}</span></div>
+        <div class="teks-item-bank">${escapeHtmlRingkas(s.pertanyaan || "(Pertanyaan kosong)")}</div>
+        <details class="opsi-item-bank"><summary>Lihat ${opsi.length} opsi jawaban</summary><ol type="A">${opsi.map(o => `<li>${escapeHtmlRingkas(o)}</li>`).join("")}</ol></details>
+        <div class="aksi-item-bank"><button type="button" class="btn-sekunder btn-edit-soal" data-index="${indexAsli}">Edit</button><button type="button" class="btn-hapus-soal" data-index="${indexAsli}">Hapus</button></div>`;
+      list.appendChild(card);
     });
+    details.appendChild(list);
+    wadah.appendChild(details);
   });
 
-  tbody.querySelectorAll(".btn-edit-soal").forEach((btn) => {
-    btn.addEventListener("click", () => bukaFormEditSoal(Number(btn.dataset.index)));
-  });
-
-  tbody.querySelectorAll(".btn-hapus-soal").forEach((btn) => {
-    btn.addEventListener("click", () => hapusSoalByIndex(Number(btn.dataset.index)));
-  });
+  wadah.querySelectorAll(".btn-edit-soal").forEach(btn => btn.addEventListener("click", () => bukaFormEditSoal(Number(btn.dataset.index))));
+  wadah.querySelectorAll(".btn-hapus-soal").forEach(btn => btn.addEventListener("click", () => hapusSoalByIndex(Number(btn.dataset.index))));
 }
+
 async function hapusSoalByIndex(index) {
   const soal = daftarSoalCache[index];
   if (!soal || !kredensialGuru) return;
@@ -573,6 +560,8 @@ async function hapusSoalByIndex(index) {
 }
 
 document.getElementById("btn-muat-soal")?.addEventListener("click", muatDaftarSoal);
+document.getElementById("filter-kelas-soal")?.addEventListener("change", renderTabelSoal);
+document.getElementById("filter-mapel-soal")?.addEventListener("input", renderTabelSoal);
 
 document.getElementById("form-upload-soal")?.addEventListener("submit", async (e) => {
   e.preventDefault();
