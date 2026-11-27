@@ -398,6 +398,11 @@
                   <input type="datetime-local" id="j-selesai" />
                 </div>
                 <div class="label-field">
+                  <span>Batas Maksimal Pelanggaran</span>
+                  <input type="number" id="j-batas-pelanggaran" min="1" max="100" step="1" value="3" required />
+                  <small style="color:#64748b;">Ujian otomatis dikumpulkan saat jumlah pelanggaran mencapai angka ini.</small>
+                </div>
+                <div class="label-field">
                   <span>Status</span>
                   <select id="j-status" required>
                     <option value="AKTIF">AKTIF</option>
@@ -423,12 +428,13 @@
                     <th>Kelas</th>
                     <th>Waktu Mulai</th>
                     <th>Waktu Selesai</th>
+                    <th>Batas Pelanggaran</th>
                     <th>Status</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="tbody-jadwal">
-                  <tr><td colspan="6" class="sel-kosong">Memuat jadwal ujian...</td></tr>
+                  <tr><td colspan="7" class="sel-kosong">Memuat jadwal ujian...</td></tr>
                 </tbody>
               </table>
             </div>
