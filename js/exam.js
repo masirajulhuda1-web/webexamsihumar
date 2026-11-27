@@ -4,7 +4,7 @@ const KUNCI_STORAGE =
   typeof KUNCI_PENYIMPANAN !== "undefined" && KUNCI_PENYIMPANAN
     ? KUNCI_PENYIMPANAN
     : "cbt_ma_sihu_sesi_v1";
-const BATAS_PINDAH_TAB = 3;
+
 
 function muatSesi() {
   let tersimpan = null;
@@ -39,6 +39,9 @@ function muatSesi() {
 let sesi = muatSesi();
 const daftarSoalAktif = Array.isArray(sesi.soalList) ? sesi.soalList : [];
 let jumlahPelanggaran = Number(sesi.pelanggaran || 0);
+const BATAS_PINDAH_TAB = Number.isInteger(Number(sesi.batasPelanggaran)) && Number(sesi.batasPelanggaran) >= 1
+  ? Number(sesi.batasPelanggaran)
+  : 3;
 let sedangProsesKirim = false;
 
 let ukuranAwal = {
