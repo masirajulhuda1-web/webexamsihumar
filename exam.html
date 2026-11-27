@@ -5,6 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ruang Ujian - Madrasah Aliyah Sirajul Huda Marindi</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Gaya tombol selesai agar sangat jelas terlihat di bagian atas */
+    .area-kanan-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    #btn-selesai.btn-selesai-jelas {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 10px 18px;
+      border: 2px solid #fca5a5;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.35);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    #btn-selesai.btn-selesai-jelas:hover {
+      background: linear-gradient(135deg, #b91c1c, #991b1b);
+      transform: translateY(-1px);
+    }
+    #btn-selesai.btn-selesai-jelas:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* Modal Hasil Nilai Akhir */
+    .modal-hasil-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.78);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-hasil-overlay.tampil {
+      display: flex;
+    }
+    .kartu-hasil {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 440px;
+      width: 100%;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.25);
+    }
+    .badge-selesai {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .kotak-skor-akhir {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      border-radius: 12px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    .label-skor {
+      font-size: 0.9rem;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .angka-skor {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #15803d;
+      line-height: 1.1;
+    }
+    .detail-hasil {
+      text-align: left;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      color: #334155;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .btn-keluar-hasil {
+      width: 100%;
+      background: #166534;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-keluar-hasil:hover {
+      background: #14532d;
+    }
+  </style>
 </head>
 <body class="halaman-ujian">
   <header class="topbar-ujian">
@@ -21,9 +126,9 @@
       </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <div class="area-kanan-topbar">
       <div id="timer-ujian" class="timer-ujian">90:00</div>
-      <button type="button" id="btn-selesai" class="btn-selesai">Selesai Ujian</button>
+      <button type="button" id="btn-selesai" class="btn-selesai-jelas">✔ Selesai Ujian</button>
     </div>
   </header>
 
@@ -46,6 +151,28 @@
       <div id="status-simpan" class="status-simpan">Jawaban tersimpan otomatis di browser.</div>
     </aside>
   </main>
+
+  <!-- Modal Kartu Hasil Nilai Akhir -->
+  <div id="modal-hasil" class="modal-hasil-overlay">
+    <div class="kartu-hasil">
+      <div id="hasil-badge" class="badge-selesai">UJIAN SELESAI</div>
+      <h2 style="margin: 0 0 6px; color: #0f172a; font-size: 1.35rem;">Hasil Ujian Siswa</h2>
+      <p id="hasil-subjudul" style="margin: 0; color: #64748b; font-size: 0.9rem;">
+        Jawaban Anda telah berhasil direkam ke server.
+      </p>
+
+      <div class="kotak-skor-akhir">
+        <div class="label-skor">Nilai Akhir Anda</div>
+        <div id="hasil-nilai-angka" class="angka-skor">-</div>
+      </div>
+
+      <div id="hasil-detail-peserta" class="detail-hasil"></div>
+
+      <button type="button" id="btn-tutup-hasil" class="btn-keluar-hasil">
+        Selesai &amp; Kembali ke Beranda
+      </button>
+    </div>
+  </div>
 
   <footer class="footer-ujian">
     Madrasah Aliyah Sirajul Huda Marindi &bull; Pengembang Aplikasi: <strong>Siti Aisyah</strong>
