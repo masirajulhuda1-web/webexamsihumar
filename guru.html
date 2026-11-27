@@ -544,79 +544,61 @@
         </div>
 
         <!-- TAB 2: Daftar, Edit & Hapus Soal -->
-       <div class="bungkus-tabel">
-              <table class="tabel-data">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Kelas</th>
-                    <th>Soal &amp; Opsi</th>
-                    <th>Kunci / Bobot</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody-soal">
-                  <tr><td colspan="5" class="sel-kosong">Klik "Muat Daftar Soal" untuk melihat soal.</td></tr>
-                </tbody>
-              </table>
+        <div class="panel-soal" style="margin-bottom:16px;">
+          <div class="kepala-panel">
+            <div>
+              <h2>Bank Soal</h2>
+              <p class="subjudul-panel">Soal dikelompokkan berdasarkan kelas dan mata pelajaran. Tekan kelompok untuk membuka atau menyembunyikan daftar soal.</p>
             </div>
-
-            <!-- Form Edit Soal (muncul saat tombol Edit diklik) -->
-            <div id="panel-edit-soal" class="kartu-edit-soal" style="display:none;">
-              <h3 style="margin-bottom:10px;">Edit Soal</h3>
-              <form id="form-edit-soal" style="display:grid; gap:10px;">
-                <div class="grid-form-4">
-                  <input type="text" id="edit-id" placeholder="ID Soal" required />
-                  <input type="text" id="edit-mapel" placeholder="Mapel" required />
-                  <select id="edit-kunci" required>
-                    <option value="A">Kunci: A</option>
-                    <option value="B">Kunci: B</option>
-                    <option value="C">Kunci: C</option>
-                    <option value="D">Kunci: D</option>
-                    <option value="E">Kunci: E</option>
-                  </select>
-                  <input type="number" id="edit-bobot" min="1" placeholder="Bobot" required />
-                  <select id="edit-kelas">
-                    <option value="SEMUA">Kelas: SEMUA</option>
-                    <option value="X">Kelas: X (10)</option>
-                    <option value="XI">Kelas: XI (11)</option>
-                    <option value="XII">Kelas: XII (12)</option>
-                  </select>
-                </div>
-                <textarea id="edit-tanya" rows="2" placeholder="Pertanyaan soal" required></textarea>
-                <div class="grid-opsi-5">
-                  <input type="text" id="edit-a" placeholder="Opsi A" required />
-                  <input type="text" id="edit-b" placeholder="Opsi B" required />
-                  <input type="text" id="edit-c" placeholder="Opsi C" required />
-                  <input type="text" id="edit-d" placeholder="Opsi D" required />
-                  <input type="text" id="edit-e" placeholder="Opsi E" />
-                </div>
-                <div class="baris-aksi">
-                  <button type="submit" id="btn-simpan-edit" class="tombol-masuk">Simpan Perubahan Soal</button>
-                  <button type="button" id="btn-batal-edit" class="btn-sekunder">Batal</button>
-                </div>
-              </form>
-            </div>
-
-            <div class="bungkus-tabel">
-              <table class="tabel-data">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Mapel &amp; Kelas</th>
-                    <th>Pertanyaan &amp; Opsi</th>
-                    <th>Kunci</th>
-                    <th>Bobot</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody-soal">
-                  <tr><td colspan="6" class="sel-kosong">Klik "Muat Daftar Soal" untuk melihat soal.</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div id="status-kelola-soal" class="status-simpan"></div>
           </div>
+          <div class="baris-aksi" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
+            <input type="text" id="filter-mapel-soal" placeholder="Cari mata pelajaran..." style="flex:1;min-width:170px;" />
+            <select id="filter-kelas-soal" style="min-width:150px;">
+              <option value="">Semua Kelas</option>
+              <option value="X">Kelas X (10)</option>
+              <option value="XI">Kelas XI (11)</option>
+              <option value="XII">Kelas XII (12)</option>
+              <option value="SEMUA">Semua Tingkat</option>
+            </select>
+            <button type="button" id="btn-muat-soal" class="btn-sekunder">Muat Daftar Soal</button>
+          </div>
+          <div id="ringkasan-daftar-soal" class="status-simpan"></div>
+          <div id="daftar-kelompok-soal">
+            <div class="sel-kosong">Klik "Muat Daftar Soal" untuk melihat soal.</div>
+          </div>
+          <div id="status-kelola-soal" class="status-simpan"></div>
+        </div>
+
+        <!-- Form Edit Soal -->
+        <div id="panel-edit-soal" class="kartu-edit-soal" style="display:none;">
+          <h3 style="margin-bottom:10px;">Edit Soal</h3>
+          <form id="form-edit-soal" style="display:grid;gap:10px;">
+            <div class="grid-form-4">
+              <input type="text" id="edit-id" placeholder="ID Soal" required />
+              <input type="text" id="edit-mapel" placeholder="Mapel" required />
+              <select id="edit-kunci" required>
+                <option value="A">Kunci: A</option><option value="B">Kunci: B</option>
+                <option value="C">Kunci: C</option><option value="D">Kunci: D</option><option value="E">Kunci: E</option>
+              </select>
+              <input type="number" id="edit-bobot" min="1" placeholder="Bobot" required />
+              <select id="edit-kelas">
+                <option value="SEMUA">Kelas: SEMUA</option><option value="X">Kelas: X (10)</option>
+                <option value="XI">Kelas: XI (11)</option><option value="XII">Kelas: XII (12)</option>
+              </select>
+            </div>
+            <textarea id="edit-tanya" rows="2" placeholder="Pertanyaan soal" required></textarea>
+            <div class="grid-opsi-5">
+              <input type="text" id="edit-a" placeholder="Opsi A" required />
+              <input type="text" id="edit-b" placeholder="Opsi B" required />
+              <input type="text" id="edit-c" placeholder="Opsi C" required />
+              <input type="text" id="edit-d" placeholder="Opsi D" required />
+              <input type="text" id="edit-e" placeholder="Opsi E" />
+            </div>
+            <div class="baris-aksi">
+              <button type="submit" id="btn-simpan-edit" class="tombol-masuk">Simpan Perubahan Soal</button>
+              <button type="button" id="btn-batal-edit" class="btn-sekunder">Batal</button>
+            </div>
+          </form>
         </div>
 
        <!-- TAB 3: Hasil & Unduh Hasil Siswa -->
