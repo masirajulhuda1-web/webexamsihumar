@@ -152,7 +152,7 @@ async function muatJadwalUjian() {
   const tbody = document.getElementById("tbody-jadwal");
   if (!tbody) return;
 
-  tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong">Memuat jadwal ujian...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="7" class="sel-kosong">Memuat jadwal ujian...</td></tr>`;
 
   try {
     const res = await fetch(API_URL, {
@@ -170,7 +170,7 @@ async function muatJadwalUjian() {
     daftarJadwalCache = hasil.data || [];
     renderTabelJadwal();
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong" style="color:#b91c1c;">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="sel-kosong" style="color:#b91c1c;">${err.message}</td></tr>`;
   }
 }
 
@@ -179,7 +179,7 @@ function renderTabelJadwal() {
   if (!tbody) return;
 
   if (!daftarJadwalCache.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong">Belum ada jadwal ujian yang diatur.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="sel-kosong">Belum ada jadwal ujian yang diatur.</td></tr>`;
     return;
   }
 
@@ -193,6 +193,7 @@ function renderTabelJadwal() {
       <td>${j.kelas}</td>
       <td>${j.waktuMulaiLabel}</td>
       <td>${j.waktuSelesaiLabel}</td>
+      <td style="font-weight:700;">${Number(j.batasPelanggaran || 3)}x</td>
       <td><span class="badge-status ${badgeClass}">${j.status}</span></td>
       <td style="white-space:nowrap;">
         <button type="button" class="btn-sekunder btn-edit-jadwal" data-index="${idx}" style="padding:5px 9px;font-size:0.8rem;">Edit</button>
@@ -210,6 +211,7 @@ function renderTabelJadwal() {
       document.getElementById("j-kelas").value = item.kelas || "SEMUA";
       document.getElementById("j-mulai").value = toDatetimeLocalValue(item.waktuMulai);
       document.getElementById("j-selesai").value = toDatetimeLocalValue(item.waktuSelesai);
+      document.getElementById("j-batas-pelanggaran").value = Number(item.batasPelanggaran || 3);
       document.getElementById("j-status").value = item.status || "AKTIF";
       document.getElementById("form-simpan-jadwal").scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
@@ -254,6 +256,7 @@ document.getElementById("btn-reset-form-jadwal")?.addEventListener("click", () =
   document.getElementById("j-kelas").value = "X";
   document.getElementById("j-mulai").value = "";
   document.getElementById("j-selesai").value = "";
+  document.getElementById("j-batas-pelanggaran").value = "3";
   document.getElementById("j-status").value = "AKTIF";
 });
 
@@ -273,6 +276,7 @@ document.getElementById("form-simpan-jadwal")?.addEventListener("submit", async 
     kelas: document.getElementById("j-kelas").value,
     waktuMulai: mulaiVal ? new Date(mulaiVal).toISOString() : "",
     waktuSelesai: selesaiVal ? new Date(selesaiVal).toISOString() : "",
+    batasPelanggaran: Number(document.getElementById("j-batas-pelanggaran").value),
     status: document.getElementById("j-status").value
   };
 
