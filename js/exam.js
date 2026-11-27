@@ -5,7 +5,6 @@ const KUNCI_STORAGE =
     ? KUNCI_PENYIMPANAN
     : "cbt_ma_sihu_sesi_v1";
 
-
 function muatSesi() {
   let tersimpan = null;
   try {
@@ -39,9 +38,10 @@ function muatSesi() {
 let sesi = muatSesi();
 const daftarSoalAktif = Array.isArray(sesi.soalList) ? sesi.soalList : [];
 let jumlahPelanggaran = Number(sesi.pelanggaran || 0);
-const BATAS_PINDAH_TAB = Number.isInteger(Number(sesi.batasPelanggaran)) && Number(sesi.batasPelanggaran) >= 1
-  ? Number(sesi.batasPelanggaran)
-  : 3;
+const BATAS_PINDAH_TAB =
+  Number.isInteger(Number(sesi.batasPelanggaran)) && Number(sesi.batasPelanggaran) >= 1
+    ? Number(sesi.batasPelanggaran)
+    : 3;
 let sedangProsesKirim = false;
 
 let ukuranAwal = {
@@ -63,6 +63,7 @@ async function kirimAutosaveKeServer() {
   try {
     await fetch(API_URL, {
       method: "POST",
+      redirect: "follow",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "autosave",
@@ -199,7 +200,14 @@ async function selesaikanUjian(otomatis = false) {
   clearInterval(intervalTimer);
   simpanSesi();
 
+  const btnSelesai = document.getElementById("btn-selesai");
+  if (btnSelesai) {
+    btnSelesai.disabled = true;
+    btnSelesai.textContent = "Mengirim...";
+  }
+
   let nilaiServer = null;
+  let pesanServer = "";
 
   if (
     typeof API_URL !== "undefined" &&
@@ -211,6 +219,7 @@ async function selesaikanUjian(otomatis = false) {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
+        redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "submit",
@@ -222,20 +231,35 @@ async function selesaikanUjian(otomatis = false) {
           pelanggaran: jumlahPelanggaran
         })
       });
-      const hasil = await res.json();
-      if (hasil && hasil.status === "success" && hasil.nilai !== undefined) {
-        nilaiServer = hasil.nilai;
+
+      const teksRespons = await res.text();
+      const hasil = JSON.parse(teksRespons);
+
+      if (hasil && hasil.status === "success") {
+        nilaiServer = hasil.nilai !== undefined && hasil.nilai !== null ? hasil.nilai : 0;
+      } else if (hasil && hasil.message) {
+        pesanServer = hasil.message;
       }
     } catch (e) {
-      // Fallback jika gagal menghubungi server
+      pesanServer = "Gagal terhubung ke server nilai. Pastikan koneksi internet stabil.";
     }
   }
 
   const pembuka = otomatis ? "Waktu habis / ujian dikumpulkan otomatis!\n" : "Ujian selesai!\n";
-  const infoNilai = nilaiServer !== null ? `Nilai Akhir: ${nilaiServer}\n` : "Jawaban telah dikirim.\n";
+  let infoNilai = "";
+
+  if (nilaiServer !== null) {
+    infoNilai = `Nilai Akhir: ${nilaiServer}\n`;
+  } else if (pesanServer) {
+    infoNilai = `Keterangan: ${pesanServer}\n`;
+  } else {
+    infoNilai = "Jawaban telah dikirim.\n";
+  }
 
   alert(
-    `${pembuka}Peserta: ${sesi.namaPeserta || sesi.nama}\n` +
+    `${pembuka}` +
+    `Peserta: ${sesi.namaPeserta || sesi.nama}\n` +
+    `Mata Pelajaran: ${sesi.mapel || "-"}\n` +
     `Pelanggaran Layar: ${jumlahPelanggaran}x\n` +
     infoNilai
   );
