@@ -544,17 +544,21 @@
         </div>
 
         <!-- TAB 2: Daftar, Edit & Hapus Soal -->
-        <div id="tab-bank-soal" class="konten-tab-guru" style="display:none;">
-          <div class="panel-soal">
-            <div class="kepala-panel flex-wrap-bar">
-              <div>
-                <h2>Daftar Soal Tersimpan (Per Mapel)</h2>
-                <p class="subjudul-panel">Soal dikelompokkan per mata pelajaran. Anda dapat mengedit atau menghapus soal dari <code>BankSoal</code> &amp; <code>Kunci</code>.</p>
-              </div>
-              <div class="baris-aksi">
-                <input type="text" id="filter-mapel-soal" placeholder="Filter mapel (kosong = semua)" />
-                <button type="button" id="btn-muat-soal" class="btn-sekunder">Muat Daftar Soal</button>
-              </div>
+       <div class="bungkus-tabel">
+              <table class="tabel-data">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Kelas</th>
+                    <th>Soal &amp; Opsi</th>
+                    <th>Kunci / Bobot</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-soal">
+                  <tr><td colspan="5" class="sel-kosong">Klik "Muat Daftar Soal" untuk melihat soal.</td></tr>
+                </tbody>
+              </table>
             </div>
 
             <!-- Form Edit Soal (muncul saat tombol Edit diklik) -->
