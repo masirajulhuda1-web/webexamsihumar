@@ -236,7 +236,10 @@ document.getElementById("form-login")?.addEventListener("submit", async (e) => {
       soalList: soalDariServer,
       indeksAktif: 0,
       jawaban: hasil.savedAnswers && typeof hasil.savedAnswers === "object" ? hasil.savedAnswers : {},
-      pelanggaran: 0
+      pelanggaran: 0,
+      batasPelanggaran: Number(hasil.batasPelanggaran) >= 1
+        ? Math.floor(Number(hasil.batasPelanggaran))
+        : 3
     };
 
     localStorage.setItem(KUNCI_STORAGE_LOGIN, JSON.stringify(sesiBaru));
