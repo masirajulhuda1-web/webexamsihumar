@@ -57,6 +57,7 @@ function simpanSesi() {
 }
 
 async function kirimAutosaveKeServer() {
+  if (sedangProsesKirim) return;
   if (typeof API_URL === "undefined" || !API_URL || API_URL.includes("TEMPEL_")) return;
   if (!sesi.nis || sesi.nis === "-") return;
 
@@ -82,7 +83,7 @@ async function kirimAutosaveKeServer() {
 
 function tampilkanSoal() {
   document.getElementById("info-peserta").textContent =
-    `Peserta: ${sesi.namaPeserta || sesi.nama || "-"}`;
+    `Peserta: ${sesi.namaPeserta || sesi.nama || "-"} (${sesi.mapel || "-"})`;
 
   if (!daftarSoalAktif.length) {
     document.getElementById("nomor-soal-label").textContent = "Soal tidak ditemukan";
@@ -194,6 +195,38 @@ function perbaruiTimer() {
   }
 }
 
+function tampilkanKartuHasil({ otomatis, nilaiServer, detailBenar, pesanServer }) {
+  const modal = document.getElementById("modal-hasil");
+  const badge = document.getElementById("hasil-badge");
+  const subjudul = document.getElementById("hasil-subjudul");
+  const angkaEl = document.getElementById("hasil-nilai-angka");
+  const detailEl = document.getElementById("hasil-detail-peserta");
+
+  badge.textContent = otomatis ? "WAKTU HABIS / OTOMATIS SELESAI" : "UJIAN SELESAI";
+
+  if (nilaiServer !== null && nilaiServer !== undefined) {
+    angkaEl.textContent = nilaiServer;
+    subjudul.textContent = detailBenar
+      ? `Jawaban benar: ${detailBenar}`
+      : "Jawaban Anda telah berhasil dinilai oleh sistem.";
+  } else {
+    angkaEl.textContent = "-";
+    angkaEl.style.fontSize = "1.5rem";
+    subjudul.textContent = pesanServer || "Jawaban terkirim, namun nilai belum dapat ditampilkan.";
+  }
+
+  const jumlahTerjawab = Object.keys(sesi.jawaban || {}).length;
+  detailEl.innerHTML = `
+    <div><strong>Nama Peserta:</strong> ${sesi.namaPeserta || sesi.nama || "-"}</div>
+    <div><strong>NIS / Kelas:</strong> ${sesi.nis || "-"} / ${sesi.kelas || "-"}</div>
+    <div><strong>Mata Pelajaran:</strong> ${sesi.mapel || "-"}</div>
+    <div><strong>Soal Dijawab:</strong> ${jumlahTerjawab} dari ${daftarSoalAktif.length} soal</div>
+    <div><strong>Pelanggaran Layar:</strong> ${jumlahPelanggaran}x</div>
+  `;
+
+  modal.classList.add("tampil");
+}
+
 async function selesaikanUjian(otomatis = false) {
   if (sedangProsesKirim) return;
   sedangProsesKirim = true;
@@ -203,10 +236,11 @@ async function selesaikanUjian(otomatis = false) {
   const btnSelesai = document.getElementById("btn-selesai");
   if (btnSelesai) {
     btnSelesai.disabled = true;
-    btnSelesai.textContent = "Mengirim...";
+    btnSelesai.textContent = "Menghitung Nilai...";
   }
 
   let nilaiServer = null;
+  let detailBenar = "";
   let pesanServer = "";
 
   if (
@@ -237,35 +271,21 @@ async function selesaikanUjian(otomatis = false) {
 
       if (hasil && hasil.status === "success") {
         nilaiServer = hasil.nilai !== undefined && hasil.nilai !== null ? hasil.nilai : 0;
+        if (hasil.benar !== undefined && hasil.totalSoal !== undefined) {
+          detailBenar = `${hasil.benar} dari ${hasil.totalSoal} soal`;
+        }
       } else if (hasil && hasil.message) {
         pesanServer = hasil.message;
       }
     } catch (e) {
-      pesanServer = "Gagal terhubung ke server nilai. Pastikan koneksi internet stabil.";
+      pesanServer = "Gagal terhubung ke server nilai. Periksa koneksi internet Anda.";
     }
-  }
-
-  const pembuka = otomatis ? "Waktu habis / ujian dikumpulkan otomatis!\n" : "Ujian selesai!\n";
-  let infoNilai = "";
-
-  if (nilaiServer !== null) {
-    infoNilai = `Nilai Akhir: ${nilaiServer}\n`;
-  } else if (pesanServer) {
-    infoNilai = `Keterangan: ${pesanServer}\n`;
   } else {
-    infoNilai = "Jawaban telah dikirim.\n";
+    pesanServer = "Mode uji coba (NIS kosong) atau URL server belum dikonfigurasi.";
   }
-
-  alert(
-    `${pembuka}` +
-    `Peserta: ${sesi.namaPeserta || sesi.nama}\n` +
-    `Mata Pelajaran: ${sesi.mapel || "-"}\n` +
-    `Pelanggaran Layar: ${jumlahPelanggaran}x\n` +
-    infoNilai
-  );
 
   localStorage.removeItem(KUNCI_STORAGE);
-  window.location.href = "index.html";
+  tampilkanKartuHasil({ otomatis, nilaiServer, detailBenar, pesanServer });
 }
 
 function tampilkanPeringatan(pesan) {
@@ -341,9 +361,18 @@ document.getElementById("btn-next").addEventListener("click", () => {
 });
 
 document.getElementById("btn-selesai").addEventListener("click", () => {
-  if (confirm("Yakin ingin mengumpulkan ujian sekarang?")) {
+  if (sedangProsesKirim) return;
+  const jumlahTerjawab = Object.keys(sesi.jawaban || {}).length;
+  const pesanKonfirmasi =
+    `Anda telah menjawab ${jumlahTerjawab} dari ${daftarSoalAktif.length} soal.\n` +
+    `Yakin ingin menyelesaikan dan mengumpulkan ujian sekarang?`;
+  if (confirm(pesanKonfirmasi)) {
     selesaikanUjian(false);
   }
+});
+
+document.getElementById("btn-tutup-hasil").addEventListener("click", () => {
+  window.location.href = "index.html";
 });
 
 ["copy", "cut", "dragstart", "contextmenu"].forEach((namaEvent) => {
@@ -395,6 +424,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("blur", () => {
+  if (sedangProsesKirim) return;
   document.body.classList.add("mode-tangkap-layar");
   catatPelanggaranAman("kehilangan fokus jendela ujian");
 });
