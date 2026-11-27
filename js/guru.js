@@ -331,15 +331,23 @@ async function muatDaftarSoal() {
 }
 
 function renderTabelSoal() {
+ function escapeHtmlRingkas(teks) {
+  return String(teks ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderTabelSoal() {
   const tbody = document.getElementById("tbody-soal");
   if (!tbody) return;
 
   if (!daftarSoalCache.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong">Belum ada soal tersimpan.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="sel-kosong">Belum ada soal tersimpan.</td></tr>`;
     return;
   }
 
-  // Kelompokkan soal berdasarkan nama mapel (mempertahankan urutan kemunculan)
   const kelompokMapel = new Map();
   daftarSoalCache.forEach((soal, indexAsli) => {
     const namaMapel = String(soal.mapel || "Tanpa Mapel").trim() || "Tanpa Mapel";
@@ -358,32 +366,44 @@ function renderTabelSoal() {
   kelompokMapel.forEach(({ labelMapel, items }) => {
     const totalBobot = items.reduce((acc, item) => acc + (Number(item.soal.bobot) || 1), 0);
 
-    // Baris header kelompok per mapel
     const trGroup = document.createElement("tr");
     trGroup.innerHTML = `
-      <td colspan="6" style="padding:10px 12px;background:#ecfdf5;border-top:2px solid #86efac;border-bottom:1px solid #bbf7d0;color:#14532d;font-weight:700;">
-        Mapel: ${labelMapel} &bull; <span style="font-weight:600;">${items.length} soal</span> &bull; <span style="font-weight:600;">Total bobot: ${totalBobot}</span>
+      <td colspan="5" style="padding:8px 12px;background:#ecfdf5;border-top:2px solid #86efac;border-bottom:1px solid #bbf7d0;color:#14532d;font-weight:700;font-size:0.86rem;">
+        ${escapeHtmlRingkas(labelMapel)} &bull; <span style="font-weight:600;">${items.length} soal</span> &bull; <span style="font-weight:600;">Total bobot: ${totalBobot}</span>
       </td>
     `;
     tbody.appendChild(trGroup);
 
     items.forEach(({ soal: s, indexAsli }) => {
-      const opsiE = s.opsiE ? ` | E. ${s.opsiE}` : "";
+      const opsiList = [
+        s.opsiA ? `A. ${escapeHtmlRingkas(s.opsiA)}` : "",
+        s.opsiB ? `B. ${escapeHtmlRingkas(s.opsiB)}` : "",
+        s.opsiC ? `C. ${escapeHtmlRingkas(s.opsiC)}` : "",
+        s.opsiD ? `D. ${escapeHtmlRingkas(s.opsiD)}` : "",
+        s.opsiE ? `E. ${escapeHtmlRingkas(s.opsiE)}` : ""
+      ].filter(Boolean);
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:600;">${s.idSoal}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.mapel} <span style="font-size:0.78rem;color:#475569;">(${s.kelas || "SEMUA"})</span></td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;max-width:380px;">
-          <div style="font-weight:600;margin-bottom:4px;">${s.pertanyaan}</div>
-          <div style="font-size:0.8rem;color:#475569;">
-            A. ${s.opsiA} | B. ${s.opsiB} | C. ${s.opsiC} | D. ${s.opsiD}${opsiE}
+        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:600;white-space:nowrap;">${escapeHtmlRingkas(s.idSoal)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;font-size:0.82rem;color:#475569;">${escapeHtmlRingkas(s.kelas || "SEMUA")}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;max-width:460px;">
+          <div style="font-weight:600;font-size:0.86rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+            ${escapeHtmlRingkas(s.pertanyaan)}
           </div>
+          <details style="margin-top:3px;">
+            <summary style="cursor:pointer;font-size:0.78rem;color:#15803d;font-weight:600;user-select:none;">Lihat opsi</summary>
+            <div style="font-size:0.78rem;color:#475569;margin-top:4px;line-height:1.4;">
+              ${opsiList.join(" &bull; ")}
+            </div>
+          </details>
         </td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${s.kunci || "-"}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.bobot}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
-          <button type="button" class="btn-sekunder btn-edit-soal" data-index="${indexAsli}" style="padding:5px 9px;font-size:0.8rem;">Edit</button>
-          <button type="button" class="btn-hapus-soal" data-index="${indexAsli}" style="padding:5px 9px;font-size:0.8rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;">Hapus</button>
+        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;font-size:0.82rem;">
+          <strong>${escapeHtmlRingkas(s.kunci || "-")}</strong> <span style="color:#64748b;">(bobot ${escapeHtmlRingkas(s.bobot)})</span>
+        </td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
+          <button type="button" class="btn-sekunder btn-edit-soal" data-index="${indexAsli}" style="padding:4px 8px;font-size:0.78rem;">Edit</button>
+          <button type="button" class="btn-hapus-soal" data-index="${indexAsli}" style="padding:4px 8px;font-size:0.78rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;">Hapus</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -398,7 +418,6 @@ function renderTabelSoal() {
     btn.addEventListener("click", () => hapusSoalByIndex(Number(btn.dataset.index)));
   });
 }
-
 async function hapusSoalByIndex(index) {
   const soal = daftarSoalCache[index];
   if (!soal || !kredensialGuru) return;
