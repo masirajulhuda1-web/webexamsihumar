@@ -270,13 +270,43 @@ document.getElementById("form-simpan-jadwal")?.addEventListener("submit", async 
 
   const mulaiVal = document.getElementById("j-mulai").value;
   const selesaiVal = document.getElementById("j-selesai").value;
+  const batasInput = document.getElementById("j-batas-pelanggaran");
+  const batasRaw = String(batasInput.value || "").trim();
+  const batasPelanggaran = batasRaw === "" ? NaN : Number(batasRaw);
+
+  // Validasi dilakukan sebelum mengirim data ke Apps Script.
+  if (!Number.isInteger(batasPelanggaran) || batasPelanggaran < 1 || batasPelanggaran > 100) {
+    alert("Batas maksimal pelanggaran harus diisi angka bulat antara 1 sampai 100.");
+    batasInput.focus();
+    btn.disabled = false;
+    btn.textContent = "Simpan Jadwal";
+    return;
+  }
+
+  const konversiWaktu = (nilai, label) => {
+    if (!nilai) return "";
+    const tanggal = new Date(nilai);
+    if (isNaN(tanggal.getTime())) throw new Error("Format " + label + " tidak valid.");
+    return tanggal.toISOString();
+  };
+
+  let waktuMulai, waktuSelesai;
+  try {
+    waktuMulai = konversiWaktu(mulaiVal, "waktu mulai");
+    waktuSelesai = konversiWaktu(selesaiVal, "waktu selesai");
+  } catch (err) {
+    alert(err.message);
+    btn.disabled = false;
+    btn.textContent = "Simpan Jadwal";
+    return;
+  }
 
   const jadwalPayload = {
     mapel: document.getElementById("j-mapel").value.trim(),
     kelas: document.getElementById("j-kelas").value,
-    waktuMulai: mulaiVal ? new Date(mulaiVal).toISOString() : "",
-    waktuSelesai: selesaiVal ? new Date(selesaiVal).toISOString() : "",
-    batasPelanggaran: Number(document.getElementById("j-batas-pelanggaran").value),
+    waktuMulai,
+    waktuSelesai,
+    batasPelanggaran: batasPelanggaran,
     status: document.getElementById("j-status").value
   };
 
@@ -291,11 +321,19 @@ document.getElementById("form-simpan-jadwal")?.addEventListener("submit", async 
         jadwal: jadwalPayload
       })
     });
-    const hasil = await res.json();
-    if (hasil.status !== "success") throw new Error(hasil.message);
+    const teksRespons = await res.text();
+    let hasil;
+    try {
+      hasil = JSON.parse(teksRespons);
+    } catch (_) {
+      throw new Error("Respons server tidak terbaca. Pastikan Web App Apps Script sudah diperbarui/deploy ulang.");
+    }
+    if (!res.ok || hasil.status !== "success") {
+      throw new Error(hasil.message || `Gagal menyimpan jadwal (HTTP ${res.status}).`);
+    }
 
     const statusEl = document.getElementById("status-jadwal");
-    if (statusEl) statusEl.textContent = hasil.message;
+    if (statusEl) statusEl.textContent = hasil.message || "Jadwal berhasil disimpan.";
     await muatJadwalUjian();
   } catch (err) {
     alert(err.message);
