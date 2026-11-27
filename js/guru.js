@@ -335,31 +335,59 @@ function renderTabelSoal() {
   if (!tbody) return;
 
   if (!daftarSoalCache.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:12px;text-align:center;">Belum ada soal tersimpan.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="sel-kosong">Belum ada soal tersimpan.</td></tr>`;
     return;
   }
 
+  // Kelompokkan soal berdasarkan nama mapel (mempertahankan urutan kemunculan)
+  const kelompokMapel = new Map();
+  daftarSoalCache.forEach((soal, indexAsli) => {
+    const namaMapel = String(soal.mapel || "Tanpa Mapel").trim() || "Tanpa Mapel";
+    const kunciKelompok = namaMapel.toLowerCase();
+    if (!kelompokMapel.has(kunciKelompok)) {
+      kelompokMapel.set(kunciKelompok, {
+        labelMapel: namaMapel,
+        items: []
+      });
+    }
+    kelompokMapel.get(kunciKelompok).items.push({ soal, indexAsli });
+  });
+
   tbody.innerHTML = "";
-  daftarSoalCache.forEach((s, index) => {
-    const opsiE = s.opsiE ? ` | E. ${s.opsiE}` : "";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:600;">${s.idSoal}</td>
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.mapel} <span style="font-size:0.78rem;color:#475569;">(${s.kelas || "SEMUA"})</span></td>
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;max-width:380px;">
-        <div style="font-weight:600;margin-bottom:4px;">${s.pertanyaan}</div>
-        <div style="font-size:0.8rem;color:#475569;">
-          A. ${s.opsiA} | B. ${s.opsiB} | C. ${s.opsiC} | D. ${s.opsiD}${opsiE}
-        </div>
-      </td>
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${s.kunci || "-"}</td>
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.bobot}</td>
-      <td style="padding:8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
-        <button type="button" class="btn-sekunder btn-edit-soal" data-index="${index}" style="padding:5px 9px;font-size:0.8rem;">Edit</button>
-        <button type="button" class="btn-hapus-soal" data-index="${index}" style="padding:5px 9px;font-size:0.8rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;">Hapus</button>
+
+  kelompokMapel.forEach(({ labelMapel, items }) => {
+    const totalBobot = items.reduce((acc, item) => acc + (Number(item.soal.bobot) || 1), 0);
+
+    // Baris header kelompok per mapel
+    const trGroup = document.createElement("tr");
+    trGroup.innerHTML = `
+      <td colspan="6" style="padding:10px 12px;background:#ecfdf5;border-top:2px solid #86efac;border-bottom:1px solid #bbf7d0;color:#14532d;font-weight:700;">
+        Mapel: ${labelMapel} &bull; <span style="font-weight:600;">${items.length} soal</span> &bull; <span style="font-weight:600;">Total bobot: ${totalBobot}</span>
       </td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(trGroup);
+
+    items.forEach(({ soal: s, indexAsli }) => {
+      const opsiE = s.opsiE ? ` | E. ${s.opsiE}` : "";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:600;">${s.idSoal}</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.mapel} <span style="font-size:0.78rem;color:#475569;">(${s.kelas || "SEMUA"})</span></td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;max-width:380px;">
+          <div style="font-weight:600;margin-bottom:4px;">${s.pertanyaan}</div>
+          <div style="font-size:0.8rem;color:#475569;">
+            A. ${s.opsiA} | B. ${s.opsiB} | C. ${s.opsiC} | D. ${s.opsiD}${opsiE}
+          </div>
+        </td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${s.kunci || "-"}</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;">${s.bobot}</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
+          <button type="button" class="btn-sekunder btn-edit-soal" data-index="${indexAsli}" style="padding:5px 9px;font-size:0.8rem;">Edit</button>
+          <button type="button" class="btn-hapus-soal" data-index="${indexAsli}" style="padding:5px 9px;font-size:0.8rem;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer;">Hapus</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
   });
 
   tbody.querySelectorAll(".btn-edit-soal").forEach((btn) => {
@@ -371,6 +399,39 @@ function renderTabelSoal() {
   });
 }
 
+async function hapusSoalByIndex(index) {
+  const soal = daftarSoalCache[index];
+  if (!soal || !kredensialGuru) return;
+
+  const yakin = confirm(
+    `Hapus soal "${soal.idSoal}" (${soal.mapel} - ${soal.kelas || "SEMUA"}) secara permanen dari BankSoal dan Kunci?`
+  );
+  if (!yakin) return;
+
+  const statusEl = document.getElementById("status-kelola-soal");
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "deleteSoal",
+        idGuru: kredensialGuru.idGuru,
+        kodeAkses: kredensialGuru.kodeAkses,
+        idSoal: soal.idSoal,
+        mapel: soal.mapel,
+        kelas: soal.kelas || "SEMUA"
+      })
+    });
+    const hasil = await res.json();
+    if (hasil.status !== "success") throw new Error(hasil.message);
+
+    if (statusEl) statusEl.textContent = hasil.message;
+    await muatDaftarSoal();
+  } catch (err) {
+    alert(err.message);
+  }
+}
 function bukaFormEditSoal(index) {
   const soal = daftarSoalCache[index];
   if (!soal) return;
